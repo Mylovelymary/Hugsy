@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="ice">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Темы — Хагси</title>
+<meta name="description" content="Цветовая тема, узор на фоне и своя картинка — настрой, чтобы было приятно возвращаться.">
+<meta name="theme-color" content="#eaf4fb">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+<link rel="preload" href="assets/fonts/manrope-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/inter-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/css/style.css">
+<script src="data/icons.js" defer></script>
+<script src="data/patterns.js" defer></script>
+<script src="assets/js/app.js" defer></script>
+<script src="assets/js/themes.js" defer></script>
+</head>
+<body>
+
+<header class="top">
+  <a class="brand" href="index.html">
+    <img class="brand-mark" src="assets/img/mark.webp" width="96" height="118" alt="">
+    Хагси
+  </a>
+  <nav class="nav" aria-label="Разделы">
+    <a href="index.html" data-nav="main"><span data-icon="home"></span><i>Главная</i></a>
+    <a href="panic/index.html" data-nav="main"><span data-icon="buoy"></span><i>Аптечка</i></a>
+    <a href="tracker.html" data-nav="main"><span data-icon="notebook"></span><i>Таблицы</i></a>
+    <a href="routine.html" data-nav="main"><span data-icon="zap"></span><i>Рутина</i></a>
+    <div class="nav-extra">
+      <a href="quiz.html"><span data-icon="compass"></span><i>Анкета</i></a>
+      <a href="resources.html"><span data-icon="users"></span><i>Помощь</i></a>
+      <a href="close.html"><span data-icon="heart"></span><i>Близким</i></a>
+      <a href="themes.html" aria-current="page"><span data-icon="palette"></span><i>Темы</i></a>
+    </div>
+    <button type="button" class="nav-more" aria-expanded="false" aria-label="Ещё разделы"><span data-icon="grid"></span><i>Ещё</i></button>
+  </nav>
+</header>
+
+<main class="wrap">
+  <h1>Темы</h1>
+  <p class="muted">Настрой так, чтобы хотелось сюда возвращаться. Всё меняется сразу — видно прямо на этой странице.
+    Выбор сохраняется на твоём устройстве и действует на всех страницах.</p>
+
+  <div class="card">
+    <h2><span data-icon="palette"></span>Цвета</h2>
+    <div class="swatches" id="themeList"></div>
+  </div>
+
+  <div class="card">
+    <h2><span data-icon="grid"></span>Узор на фоне</h2>
+    <p class="muted">Мелкий рисунок по всему фону, как обои. Цвет узора подстраивается под выбранную тему.</p>
+    <div class="swatches" id="patternList"></div>
+  </div>
+
+  <div class="card" id="tuning">
+    <h2 id="tuningTitle"><span data-icon="sliders"></span>Настройка узора</h2>
+    <label class="f"><span>Размер рисунка: <output id="oScale">обычный</output></span>
+      <input type="range" id="rScale" min="50" max="220" step="5" value="100"></label>
+    <label class="f"><span>Насыщенность: <output id="oAlpha">50%</output></span>
+      <input type="range" id="rAlpha" min="5" max="100" step="5" value="50"></label>
+    <label class="f"><span>Приглушить фон: <output id="oVeil">0%</output></span>
+      <input type="range" id="rVeil" min="0" max="85" step="5" value="0"></label>
+    <label class="f"><span>Цвет узора</span>
+      <span style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <input type="color" id="cColor" value="#ff9a76" style="width:58px;height:46px;padding:4px;flex:none">
+        <button class="btn sm ghost" data-act="autocolor">Как в теме</button>
+      </span>
+    </label>
+  </div>
+
+  <div class="card">
+    <h2><span data-icon="image"></span>Своя картинка</h2>
+    <p class="muted">Любое фото или обои с твоего устройства. Картинка не загружается в интернет — она остаётся
+      в памяти браузера на этом компьютере. Крупное фото ужмётся автоматически.</p>
+    <div id="imgPreview"></div>
+    <div id="imgTools"></div>
+    <div class="btn-row">
+      <button class="btn sm" data-act="pickimg"><span data-icon="image"></span> Выбрать картинку</button>
+    </div>
+  </div>
+
+  <div class="card soft">
+    <h3><span data-icon="undo"></span>Сбросить всё</h3>
+    <p class="muted">Вернуть тему «Лёд» и чистый фон без узора. Записи и таблицы это не затронет.</p>
+    <button class="btn sm ghost" data-act="reset">Сбросить оформление</button>
+  </div>
+
+</main>
+
+<footer class="foot">
+  <p>Оформление хранится только в этом браузере. На другом устройстве его нужно будет выбрать заново.</p>
+  <p class="copy">© 2026 Хагси. Проект сделан людьми, которые сами через это проходили. Это поддержка, а не медицинская услуга.</p>
+</footer>
+
+</body>
+</html>

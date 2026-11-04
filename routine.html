@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="ice">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Рутина дня — Хагси</title>
+<meta name="description" content="Чеклист дня, дробление задач до шага на две минуты и таймер фокуса. Для тех, кому тяжело начинать.">
+<meta name="theme-color" content="#eaf4fb">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+<link rel="preload" href="assets/fonts/manrope-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/inter-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/css/style.css">
+<script src="data/icons.js" defer></script>
+<script src="data/patterns.js" defer></script>
+<script src="assets/js/app.js" defer></script>
+<script src="assets/js/routine.js" defer></script>
+</head>
+<body>
+
+<header class="top">
+  <a class="brand" href="index.html">
+    <img class="brand-mark" src="assets/img/mark.webp" width="96" height="118" alt="">
+    Хагси
+  </a>
+  <nav class="nav" aria-label="Разделы">
+    <a href="index.html" data-nav="main"><span data-icon="home"></span><i>Главная</i></a>
+    <a href="panic/index.html" data-nav="main"><span data-icon="buoy"></span><i>Аптечка</i></a>
+    <a href="tracker.html" data-nav="main"><span data-icon="notebook"></span><i>Таблицы</i></a>
+    <a href="routine.html" data-nav="main" aria-current="page"><span data-icon="zap"></span><i>Рутина</i></a>
+    <div class="nav-extra">
+      <a href="quiz.html"><span data-icon="compass"></span><i>Анкета</i></a>
+      <a href="resources.html"><span data-icon="users"></span><i>Помощь</i></a>
+      <a href="close.html"><span data-icon="heart"></span><i>Близким</i></a>
+      <a href="themes.html"><span data-icon="palette"></span><i>Темы</i></a>
+    </div>
+    <button type="button" class="nav-more" aria-expanded="false" aria-label="Ещё разделы"><span data-icon="grid"></span><i>Ещё</i></button>
+  </nav>
+</header>
+
+<main class="wrap">
+  <div class="hero" style="padding-bottom:0">
+    <img class="mascot hero-mascot" src="assets/img/goose.webp" width="380" height="616"
+         alt="Гусь машет крылом" style="width:clamp(120px,32vw,160px)">
+    <h1>Рутина дня</h1>
+  </div>
+  <p class="muted center" id="dayNote">Сделанное наполовину — всё равно сделанное. Галочка за «начал» тоже считается.</p>
+
+  <div class="card">
+    <h2><span data-icon="tasks"></span>Что на сегодня</h2>
+    <div id="tasks"></div>
+    <div class="btn-row" style="margin-top:12px">
+      <button class="btn sm" data-act="addtask"><span data-icon="plus"></span>Задача</button>
+      <button class="btn sm ghost" data-act="uncheck">Сбросить галочки</button>
+    </div>
+    <div id="taskForm"></div>
+  </div>
+
+  <div class="card soft">
+    <h2><span data-icon="zap"></span>Не могу начать</h2>
+    <p class="muted">Это не лень. Мозгу тяжело запускаться — значит, нужен шаг такой маленький, что отказаться глупо.</p>
+    <p id="nudge" style="font-size:1.08rem;font-weight:600"></p>
+    <button class="btn sm ghost" data-act="nudge">Другой вариант</button>
+  </div>
+
+  <div class="card timer">
+    <h2><span data-icon="clock"></span>Таймер фокуса</h2>
+    <div class="clock" id="clock">20:00</div>
+    <p class="state" id="tstate">Фокус. Делай одно дело, остальное потом.</p>
+    <div class="btn-row" style="justify-content:center">
+      <button class="btn" id="tstart">Начать</button>
+      <button class="btn ghost" data-act="treset">Сбросить</button>
+    </div>
+
+    <div style="max-width:360px;margin:22px auto 0;text-align:left">
+      <div class="f">
+        <span>Сколько длится фокус</span>
+        <div class="stepper">
+          <button class="sbtn" data-step="focus:-5" aria-label="Фокус: на 5 минут меньше"></button>
+          <span class="mid"><span class="sval" id="focusVal">20</span><span class="sunit">минут</span></span>
+          <button class="sbtn" data-step="focus:5" aria-label="Фокус: на 5 минут больше"></button>
+        </div>
+        <div class="presets" id="focusPresets"></div>
+      </div>
+
+      <div class="f" style="margin-top:20px">
+        <span>Сколько длится перерыв</span>
+        <div class="stepper">
+          <button class="sbtn" data-step="brk:-1" aria-label="Перерыв: на минуту меньше"></button>
+          <span class="mid"><span class="sval" id="brkVal">5</span><span class="sunit">минут</span></span>
+          <button class="sbtn" data-step="brk:1" aria-label="Перерыв: на минуту больше"></button>
+        </div>
+        <div class="presets" id="brkPresets"></div>
+      </div>
+    </div>
+    <p class="muted" style="margin-top:18px">Если 20 минут — много, поставь 7. Маленький законченный
+      отрезок лучше большого брошенного.</p>
+  </div>
+
+  <div class="card">
+    <h3><span data-icon="calendar"></span>Дни, когда ты сюда заходишь</h3>
+    <p id="streak" class="muted"></p>
+    <p class="muted">Серия не обнуляется в наказание: пропуск просто не считается. Пингвин ждёт столько, сколько нужно.</p>
+  </div>
+</main>
+
+<footer class="foot">
+  <p>Задачи и настройки таймера хранятся только в этом браузере.</p>
+  <p class="copy">© 2026 Хагси. Проект сделан людьми, которые сами через это проходили. Это поддержка, а не медицинская услуга.</p>
+</footer>
+
+</body>
+</html>

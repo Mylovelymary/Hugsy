@@ -1,0 +1,31 @@
+{
+  "name": "Хагси — помощь себе",
+  "short_name": "Хагси",
+  "description": "Понять, с чем нужна помощь, и получить под это инструменты: дневник чувств, свои таблицы, рутина дня, упражнения при панике.",
+  "lang": "ru",
+  "start_url": "index.html",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#eaf4fb",
+  "theme_color": "#eaf4fb",
+  "icons": [
+    {
+      "src": "assets/img/icon-192.webp",
+      "sizes": "192x192",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/img/icon-512.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/img/icon-512.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "maskable"
+    }
+  ]
+}

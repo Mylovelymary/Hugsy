@@ -1,0 +1,30 @@
+# Системные файлы
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+desktop.ini
+
+# Внутренние файлы инструкций для AI
+CLAUDE.md
+.claude/
+
+# Внутренняя кухня: планы, анализ рынка, спецификации — не для публики
+docs/
+
+# Исходники картинок в полном размере (в сайт идут сжатые из assets/img)
+source/
+*.psd
+Gemini_Generated_Image_*
+
+# Логи и временные файлы
+*.log
+*.tmp
+*.temp
+
+# Файлы редакторов и сред разработки
+.idea/
+.vscode/*
+!.vscode/launch.json
+*.swp
+*.swo

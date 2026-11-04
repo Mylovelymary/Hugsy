@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="ice">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Хагси — тёплая помощь себе</title>
+<meta name="description" content="Понять, с чем тебе нужна помощь, и получить под это инструменты: дневник чувств, свои таблицы, рутина дня. Без регистрации, записи остаются только у тебя.">
+<meta name="theme-color" content="#eaf4fb">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+<link rel="preload" href="assets/fonts/manrope-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/inter-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/css/style.css">
+<script src="data/icons.js" defer></script>
+<script src="data/patterns.js" defer></script>
+<script src="assets/js/app.js" defer></script>
+</head>
+<body>
+
+<header class="top">
+  <a class="brand" href="index.html">
+    <img class="brand-mark" src="assets/img/mark.webp" width="96" height="118" alt="">
+    Хагси
+  </a>
+  <nav class="nav" aria-label="Разделы">
+    <a href="index.html" data-nav="main" aria-current="page"><span data-icon="home"></span><i>Главная</i></a>
+    <a href="panic/index.html" data-nav="main"><span data-icon="buoy"></span><i>Аптечка</i></a>
+    <a href="tracker.html" data-nav="main"><span data-icon="notebook"></span><i>Таблицы</i></a>
+    <a href="routine.html" data-nav="main"><span data-icon="zap"></span><i>Рутина</i></a>
+    <div class="nav-extra">
+      <a href="quiz.html"><span data-icon="compass"></span><i>Анкета</i></a>
+      <a href="resources.html"><span data-icon="users"></span><i>Помощь</i></a>
+      <a href="close.html"><span data-icon="heart"></span><i>Близким</i></a>
+      <a href="themes.html"><span data-icon="palette"></span><i>Темы</i></a>
+    </div>
+    <button type="button" class="nav-more" aria-expanded="false" aria-label="Ещё разделы"><span data-icon="grid"></span><i>Ещё</i></button>
+  </nav>
+</header>
+
+<main class="wrap">
+
+  <section class="hero">
+    <img class="mascot hero-mascot" src="assets/img/penguin.webp" width="360" height="442"
+         alt="Пингвинчик машет лапой" fetchpriority="high">
+    <h1>Привет. Давай разберёмся не спеша</h1>
+    <p class="lead">
+      Здесь можно понять, с чем тебе сейчас нужна помощь, и взять под это рабочие инструменты.
+      Без регистрации, без оценок и без диагнозов. Записи остаются только на твоём устройстве.
+    </p>
+    <div class="btn-row" style="justify-content:center">
+      <a class="btn" href="quiz.html">Пройти анкету · 5 минут</a>
+      <a class="btn ghost" href="tracker.html">Открыть дневник</a>
+    </div>
+  </section>
+
+  <div class="note crisis">
+    <p><strong>Если тяжело прямо сейчас</strong> — позвони: <strong>112</strong> (экстренные службы) или
+      <strong>8 800 2000 122</strong> (бесплатно, круглосуточно, анонимно).
+      <a href="resources.html#crisis">Другие контакты помощи</a>. Повод не нужно «заслуживать».</p>
+  </div>
+
+  <h2><span class="eyebrow">С чего начать</span>Что здесь есть</h2>
+  <div class="grid">
+    <a class="tile" href="quiz.html">
+      <span class="ico" data-icon="compass" aria-hidden="true"></span>
+      <strong>Анкета по шагам</strong>
+      <span class="d">16 простых вопросов → направления, на которые стоит обратить внимание, и инструменты под каждое.</span>
+    </a>
+    <a class="tile" href="tracker.html">
+      <span class="ico" data-icon="notebook" aria-hidden="true"></span>
+      <strong>Дневник чувств и свои таблицы</strong>
+      <span class="d">Та самая таблица, которую просят вести психологи. Плюс любые свои: сон, привычки, триггеры. Можно выгрузить и принести на сессию.</span>
+    </a>
+    <a class="tile" href="routine.html">
+      <span class="ico" data-icon="zap" aria-hidden="true"></span>
+      <strong>Рутина дня и таймер</strong>
+      <span class="d">Для тех, кому тяжело начинать: дробление задачи до шага на две минуты, чеклист дня, таймер фокуса.</span>
+    </a>
+    <a class="tile" href="panic/index.html">
+      <span class="ico" data-icon="buoy" aria-hidden="true"></span>
+      <strong>Аптечка: паника и тревога</strong>
+      <span class="d">Скорая помощь в острый момент: 26 способов по шагам. Холод, движение, слова, которые помогают.</span>
+    </a>
+    <a class="tile" href="close.html">
+      <span class="ico" data-icon="heart" aria-hidden="true"></span>
+      <strong>Близкому человека плохо</strong>
+      <span class="d">Что говорить и чего не говорить, как помочь при панике, апатии, СДВГ и перегрузке — и как не сгореть самому.</span>
+    </a>
+    <a class="tile" href="resources.html">
+      <span class="ico" data-icon="users" aria-hidden="true"></span>
+      <strong>Куда обратиться</strong>
+      <span class="d">Бесплатные линии, сервисы подбора психолога, организации по аутизму и СДВГ.</span>
+    </a>
+  </div>
+
+  <hr class="sep">
+
+  <h2><span class="eyebrow">Три шага</span>Как это работает</h2>
+  <div class="card soft">
+    <p><strong>1. Отвечаешь на вопросы.</strong> Никаких «правильных» ответов, просто про то, как есть сейчас.</p>
+    <p><strong>2. Получаешь направления.</strong> Не диагноз — а 2–3 темы, с которых разумно начать, и что с ними делать.</p>
+    <p><strong>3. Берёшь инструмент.</strong> Дневник, таблицу или рутину — и пользуешься столько, сколько нужно.</p>
+    <p class="muted">Можно проходить анкету заново хоть каждую неделю: состояние меняется, и это нормально.</p>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h3><span data-icon="lock"></span>Данные никуда не уходят</h3>
+      <p class="muted">Всё, что ты пишешь, сохраняется в памяти самого браузера на этом устройстве. У нас нет сервера,
+        который бы это получал, нет аккаунтов и нет аналитики. Выгрузить копию можно в любой момент.</p>
+    </div>
+    <div class="card">
+      <h3><span data-icon="palette"></span>Выбери, как будет выглядеть</h3>
+      <p class="muted">Пять оформлений и 13 узоров на фон во вкладке «Темы»: Лёд, Какао, Сакура, Ночь и Тихий режим.
+        Тихий режим убирает анимации и лишний декор: он для сенсорной чувствительности, мигрени и усталых глаз.</p>
+    </div>
+    <div class="card">
+      <h3><span data-icon="signal"></span>Работает на плохом интернете</h3>
+      <p class="muted">Страницы весят десятки килобайт, внешних запросов нет совсем. После первого открытия
+        сайт работает и без сети.</p>
+    </div>
+  </div>
+
+</main>
+
+<footer class="foot">
+  <p>«Хагси» — поддержка и инструменты, а не медицинская услуга. Здесь нет диагностики и лечения.
+    При тяжёлом состоянии обратись к специалисту или по <a href="resources.html#crisis">контактам помощи</a>.</p>
+  <p>Записи хранятся только в этом браузере, на этом устройстве.</p>
+  <p class="copy">© 2026 Хагси. Проект сделан людьми, которые сами через это проходили. Это поддержка, а не медицинская услуга.</p>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="ice">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Таблицы — Хагси</title>
+<meta name="description" content="Дневник чувств и любые свои таблицы: сон, настроение, триггеры. Выгрузка для психолога. Записи остаются только у тебя.">
+<meta name="theme-color" content="#eaf4fb">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+<link rel="preload" href="assets/fonts/manrope-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/inter-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/css/style.css">
+<script src="data/icons.js" defer></script>
+<script src="data/patterns.js" defer></script>
+<script src="assets/js/app.js" defer></script>
+<script src="data/table-templates.js" defer></script>
+<script src="assets/js/tracker.js" defer></script>
+</head>
+<body>
+
+<header class="top">
+  <a class="brand" href="index.html">
+    <img class="brand-mark" src="assets/img/mark.webp" width="96" height="118" alt="">
+    Хагси
+  </a>
+  <nav class="nav" aria-label="Разделы">
+    <a href="index.html" data-nav="main"><span data-icon="home"></span><i>Главная</i></a>
+    <a href="panic/index.html" data-nav="main"><span data-icon="buoy"></span><i>Аптечка</i></a>
+    <a href="tracker.html" data-nav="main" aria-current="page"><span data-icon="notebook"></span><i>Таблицы</i></a>
+    <a href="routine.html" data-nav="main"><span data-icon="zap"></span><i>Рутина</i></a>
+    <div class="nav-extra">
+      <a href="quiz.html"><span data-icon="compass"></span><i>Анкета</i></a>
+      <a href="resources.html"><span data-icon="users"></span><i>Помощь</i></a>
+      <a href="close.html"><span data-icon="heart"></span><i>Близким</i></a>
+      <a href="themes.html"><span data-icon="palette"></span><i>Темы</i></a>
+    </div>
+    <button type="button" class="nav-more" aria-expanded="false" aria-label="Ещё разделы"><span data-icon="grid"></span><i>Ещё</i></button>
+  </nav>
+</header>
+
+<main class="wrap">
+  <h1>Мои таблицы</h1>
+  <p class="muted">Записывай, когда получается. Пропуски — не провал: даже одна запись в неделю уже даёт психологу
+    больше, чем «вроде было тяжело». Всё хранится только в этом браузере.</p>
+
+  <div id="quick"></div>
+
+  <div class="tabs" id="tabs" role="tablist"></div>
+  <div id="panel" aria-live="polite"></div>
+
+  <div id="dialogs"></div>
+
+  <datalist id="emotions"></datalist>
+</main>
+
+<footer class="foot">
+  <p>Выгруженный файл можно открыть в Excel или Google Таблицах и показать специалисту.
+    Кнопка «Распечатать» делает аккуратную версию без кнопок и меню.</p>
+  <p class="copy">© 2026 Хагси. Проект сделан людьми, которые сами через это проходили. Это поддержка, а не медицинская услуга.</p>
+</footer>
+
+</body>
+</html>
