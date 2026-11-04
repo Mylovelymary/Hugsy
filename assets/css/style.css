@@ -291,6 +291,24 @@ a:hover { text-decoration-color: var(--accent); }
   padding: 14px 16px;
   flex-wrap: wrap;
 }
+/* На большом экране шапка остаётся наверху при прокрутке: страницы длинные,
+   а возвращаться к меню приходится часто. На телефоне меню и так внизу экрана,
+   поэтому там шапка обычная — лишний закреплённый блок только съел бы высоту. */
+@media (min-width: 681px) {
+  .top {
+    position: sticky;
+    top: 0;
+    z-index: 55;
+    max-width: 100%;
+    /* Полоса во всю ширину, а содержимое остаётся на тех же 860px, что и текст */
+    padding: 12px max(20px, calc((100% - 880px) / 2));   /* 880px — та же ширина, что у .wrap */
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid color-mix(in srgb, var(--line) 50%, transparent);
+  }
+}
+/* В «Тихом режиме» без размытия и полупрозрачности — просто плотный фон */
+[data-theme="quiet"] .top { backdrop-filter: none; background: var(--bg); }
 .brand {
   display: flex;
   align-items: center;

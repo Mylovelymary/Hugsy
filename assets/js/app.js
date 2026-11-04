@@ -863,7 +863,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }).catch(function () {});
       }
     } else {
-      navigator.serviceWorker.register('sw.js').catch(function () {});
+      // updateViaCache: 'none' — браузеру запрещено брать сам sw.js из своего HTTP-кеша,
+      // иначе он может сутки не замечать, что вышла новая версия сайта
+      navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
     }
   }
 });
