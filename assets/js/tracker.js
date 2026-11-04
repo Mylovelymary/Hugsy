@@ -110,15 +110,22 @@ function moodIcon(v) {
   return '';
 }
 
-function cellText(col, val) {
+/* short=true — для ячейки таблицы на телефоне: год там съедает половину колонки,
+   а в записи за эту неделю он и так очевиден. В окне записи дата показывается целиком. */
+function cellText(col, val, short) {
   if (val === undefined || val === null || val === '') return '—';
   if (col.type === 'mood') return moodLabel(val) || '—';
   if (col.type === 'scale') return val + '/10';
   if (col.type === 'date') {
     var p = String(val).split('-');
-    return p.length === 3 ? p[2] + '.' + p[1] + '.' + p[0] : val;
+    if (p.length !== 3) return val;
+    return short ? p[2] + '.' + p[1] : p[2] + '.' + p[1] + '.' + p[0];
   }
   return String(val);
+}
+
+function isNarrow() {
+  return window.matchMedia && window.matchMedia('(max-width: 640px)').matches;
 }
 
 /* ---------- Быстрая отметка настроения в два касания ----------
@@ -251,7 +258,6 @@ function renderPanel() {
   var html = '<div class="card"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">' +
     '<h2 style="margin:0;flex:1 1 auto">' + (iconOr(t.icon) || icon('notebook')) + esc(t.name) + '</h2>' +
     '<button class="btn sm" data-act="addrow">' + icon('plus') + ' Запись</button>' +
-    '<button class="btn sm ghost" data-act="cfg">' + icon('columns') + ' Колонки</button>' +
     '</div>';
 
   html += '<p class="muted" style="margin:8px 0 0">' + t.rows.length + ' ' + plural(t.rows.length, 'запись', 'записи', 'записей') +
@@ -273,7 +279,7 @@ function renderPanel() {
       html += '<tr data-row="' + row.id + '">';
       for (var c = 0; c < t.cols.length; c++) {
         html += '<td data-label="' + esc(t.cols[c].name) + '"><div class="clamp">' +
-          esc(cellText(t.cols[c], row.c[t.cols[c].id])) + '</div></td>';
+          esc(cellText(t.cols[c], row.c[t.cols[c].id], isNarrow())) + '</div></td>';
       }
       html += '<td class="act"><button class="row-ic" data-edit="' + row.id + '" title="Изменить" ' +
               'aria-label="Изменить запись">' + icon('pencil') + '</button>' +
@@ -282,6 +288,8 @@ function renderPanel() {
     }
     html += '</tbody></table></div>';
   }
+  html += '<div class="tbl-foot"><button class="btn sm ghost" data-act="cfg">' +
+    icon('columns') + ' Настроить колонки</button></div>';
   html += '</div>';
 
   html += '<div class="card soft"><h3>' + icon('download') + 'Выгрузить и поделиться</h3>' +
@@ -406,7 +414,8 @@ function renderForm(row) {
       }
       html += '</div><input type="hidden" data-col="' + c.id + '" value="' + esc(v) + '">';
     } else if (c.type === 'long') {
-      html += '<textarea data-col="' + c.id + '">' + esc(v) + '</textarea>' + micBtn(c.id);
+      html += '<div class="field-mic"><textarea data-col="' + c.id + '">' + esc(v) +
+              '</textarea>' + micBtn(c.id) + '</div>';
     } else if (c.type === 'scale') {
       html += '<div style="display:flex;align-items:center;gap:12px">' +
         '<input type="range" min="0" max="10" step="1" value="' + (v === '' ? 5 : v) + '" data-col="' + c.id + '" data-scale="1">' +
@@ -416,8 +425,8 @@ function renderForm(row) {
     } else if (c.type === 'time') {
       html += '<input type="time" value="' + esc(v) + '" data-col="' + c.id + '">';
     } else {
-      html += '<input type="text" value="' + esc(v) + '" data-col="' + c.id + '"' +
-              (c.list === 'emotions' ? ' list="emotions"' : '') + '>' + micBtn(c.id);
+      html += '<div class="field-mic"><input type="text" value="' + esc(v) + '" data-col="' + c.id + '"' +
+              (c.list === 'emotions' ? ' list="emotions"' : '') + '>' + micBtn(c.id) + '</div>';
     }
     html += '</label>';
   }
@@ -439,7 +448,7 @@ function defaultFor(c) {
 /* ---------- Голосовой ввод ----------
    Сам движок общий и живёт в app.js: им пользуется ещё и ящик мыслей. */
 function micBtn(colId) {
-  return micBtnHTML('data-mic="' + colId + '"', 'margin-top:6px');
+  return micBtnHTML('data-mic="' + colId + '"');
 }
 function startMic(colId, btn) {
   startMicInto(document.querySelector('[data-col="' + colId + '"]'), btn);

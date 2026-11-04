@@ -527,6 +527,24 @@ function initTimeFields() {
   });
 }
 
+/* ---------------- Кнопка «домой» на телефоне ----------------
+   На узком экране «Хагси» в шапке читается как логотип, а не как кнопка.
+   Поэтому на всех страницах, кроме главной, рядом появляется явная стрелка назад. */
+function initBackHome() {
+  var top = document.querySelector('.top');
+  if (!top) return;
+  var base = window.ASSET_BASE || '';
+  var page = location.pathname.split('/').pop() || 'index.html';
+  if (!base && (page === 'index.html' || page === '')) return;   // мы и так дома
+
+  var a = document.createElement('a');
+  a.className = 'back-home';
+  a.href = base + 'index.html';
+  a.setAttribute('aria-label', 'На главную');
+  a.innerHTML = icon('left') + '<i>Главная</i>';
+  top.insertBefore(a, top.firstChild);
+}
+
 /* ---------------- Голосовой ввод ----------------
    Web Speech API: встроен в браузер, бесплатный, ключей не требует.
    Распознавание идёт на стороне браузера и нужен интернет — это единственное место,
@@ -822,6 +840,7 @@ document.addEventListener('DOMContentLoaded', function () {
   initNavMore();
   applyWallpaper();
   mountIcons();
+  initBackHome();
   initInbox();
   initReminders();
   initTimeFields();
