@@ -78,7 +78,11 @@
   --text: #223a4b;
   --text-soft: #5c7689;
   --accent: #ff9a76;
+  /* --accent-ink: текст ПОВЕРХ залитого акцентом фона (кнопка, значок).
+     --accent-text: акцентный текст НА светлой карточке (ссылка, активная вкладка).
+     В «Тихом режиме» и «Ночи» это разные цвета: иначе выходит белое по белому. */
   --accent-ink: #7a3a22;
+  --accent-text: #7a3a22;
   --accent-soft: #ffe6dc;
   --accent-2: #7fc7d9;
   --accent-2-soft: #dcf1f6;
@@ -107,6 +111,7 @@
   --text-soft: #7b6755;
   --accent: #b5794a;
   --accent-ink: #4a2e18;
+  --accent-text: #4a2e18;
   --accent-soft: #f2e2d1;
   --accent-2: #8a9a6b;
   --accent-2-soft: #e8eddc;
@@ -130,6 +135,7 @@
   --text-soft: #8a6076;
   --accent: #f0699c;
   --accent-ink: #6d1f41;
+  --accent-text: #6d1f41;
   --accent-soft: #ffe0ec;
   --accent-2: #a98cf0;
   --accent-2-soft: #ece4fd;
@@ -153,6 +159,7 @@
   --text-soft: #9db0c6;
   --accent: #ffa98a;
   --accent-ink: #2a1510;
+  --accent-text: #ffa98a;
   --accent-soft: #3a2a26;
   --accent-2: #7fc7d9;
   --accent-2-soft: #233640;
@@ -173,6 +180,7 @@
   --text-soft: #4d5551;
   --accent: #4a6b7c;
   --accent-ink: #ffffff;
+  --accent-text: #2f4a57;
   --accent-soft: #e6ecef;
   --accent-2: #6b7c6f;
   --accent-2-soft: #e8ebe8;
@@ -243,7 +251,7 @@ h2 { font-size: var(--fs-h2); }
 h3 { font-size: var(--fs-h3); font-weight: 700; letter-spacing: -.015em; }
 p { margin: 0 0 1em; max-width: 68ch; }
 a {
-  color: var(--accent-ink);
+  color: var(--accent-text);
   text-decoration-thickness: 1.5px;
   text-decoration-color: color-mix(in srgb, var(--accent) 60%, transparent);
   text-underline-offset: 3px;
@@ -258,7 +266,7 @@ a:hover { text-decoration-color: var(--accent); }
   font-weight: 700;
   letter-spacing: .09em;
   text-transform: uppercase;
-  color: var(--accent-ink);
+  color: var(--accent-text);
   opacity: .72;
   margin-bottom: 6px;
 }
@@ -298,7 +306,7 @@ a:hover { text-decoration-color: var(--accent); }
 }
 .brand svg { width: 42px; height: 42px; flex: none; }
 .brand-mark { width: 42px; height: auto; flex: none; }
-.brand:hover { color: var(--accent-ink); }
+.brand:hover { color: var(--accent-text); }
 
 .nav { display: flex; gap: 4px; flex-wrap: wrap; }
 .nav a {
@@ -316,7 +324,7 @@ a:hover { text-decoration-color: var(--accent); }
 .nav a:hover { background: var(--card); color: var(--text); }
 .nav a[aria-current="page"] {
   background: var(--accent-soft);
-  color: var(--accent-ink);
+  color: var(--accent-text);
   font-weight: 700;
 }
 
@@ -385,7 +393,7 @@ h1 .i, h2 .i, h3 .i { color: var(--accent); margin-right: .34em; }
   height: 48px;
   border-radius: 16px;
   background: var(--accent-soft);
-  color: var(--accent-ink);
+  color: var(--accent-text);
   margin-bottom: var(--sp-2);
 }
 .tile .ico .i { width: 25px; height: 25px; vertical-align: 0; }
@@ -536,10 +544,13 @@ input[type="range"]::-moz-range-thumb {
 }
 
 /* Готовые значения одним нажатием */
-.presets { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 12px; }
+.presets { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+/* Это подсказки, а не главные кнопки: мельче и спокойнее, чтобы не спорили
+   со «Начать» и не рябило в глазах */
 .presets button {
-  min-height: 42px;
-  padding: 7px 16px;
+  min-height: 34px;
+  padding: 5px 12px;
+  font-size: .86rem;
   border-radius: 999px;
   border: 1px solid var(--line);
   background: var(--card);
@@ -552,7 +563,7 @@ input[type="range"]::-moz-range-thumb {
 .presets button[aria-pressed="true"] {
   background: var(--accent-soft);
   border-color: var(--accent);
-  color: var(--accent-ink);
+  color: var(--accent-text);
   font-weight: 600;
 }
 
@@ -610,7 +621,7 @@ input[type="range"]::-moz-range-thumb {
 .mood[aria-pressed="true"] {
   background: var(--accent-soft);
   border-color: var(--accent);
-  color: var(--accent-ink);
+  color: var(--accent-text);
   font-weight: 600;
 }
 
@@ -696,7 +707,7 @@ input[type="range"]::-moz-range-thumb {
   font-weight: 600;
   margin: 0 4px 4px 0;
 }
-.pill.hot { background: var(--accent-soft); color: var(--accent-ink); font-weight: 600; }
+.pill.hot { background: var(--accent-soft); color: var(--accent-text); font-weight: 600; }
 
 /* ---------- Маскот ---------- */
 .hero { text-align: center; padding: var(--sp-3) 0 var(--sp-2); position: relative; }
@@ -785,7 +796,7 @@ table.data td.act { width: 1%; white-space: nowrap; }
   font: inherit;
   font-weight: 700;
   letter-spacing: .1em;
-  color: var(--accent-ink);
+  color: var(--accent-text);
   cursor: pointer;
 }
 .more:hover { text-decoration: underline; }
@@ -809,7 +820,7 @@ table.data td.act { width: 1%; white-space: nowrap; }
 .tabs button[aria-selected="true"] {
   background: var(--accent-soft);
   border-color: var(--accent);
-  color: var(--accent-ink);
+  color: var(--accent-text);
   font-weight: 700;
 }
 
@@ -817,8 +828,8 @@ table.data td.act { width: 1%; white-space: nowrap; }
 .task {
   display: flex;
   align-items: flex-start;
-  gap: 13px;
-  padding: 15px 17px;
+  gap: 12px;
+  padding: 14px 16px;
   background: var(--card);
   border: 1.5px solid color-mix(in srgb, var(--line) 70%, transparent);
   border-radius: var(--radius-sm);
@@ -828,11 +839,23 @@ table.data td.act { width: 1%; white-space: nowrap; }
 .task:hover { border-color: var(--accent-2); }
 .task.done { background: var(--ok-soft); border-color: var(--ok); }
 .task.done .ttl { text-decoration: line-through; color: var(--text-soft); }
-.task input[type="checkbox"] { width: 24px; height: 24px; flex: none; accent-color: var(--ok); margin-top: 2px; }
+.task input[type="checkbox"] { width: 22px; height: 22px; flex: none; accent-color: var(--ok); margin: 0; }
 .task .body { flex: 1; min-width: 0; }
-.task .ttl { font-weight: 600; }
+/* Высота строки заголовка совпадает с высотой галочки — тогда они на одной линии */
+.task .ttl { font-weight: 600; line-height: 22px; }
 .task .meta { font-size: .86rem; color: var(--text-soft); }
-.task .steps { margin: 7px 0 0; padding-left: 20px; font-size: .9rem; color: var(--text-soft); }
+/* Маркер-точка не нужна: роль маркера играет сама галочка, а с точкой
+   строка расходилась по высоте — точка, квадратик и текст стояли на трёх уровнях. */
+.task .steps { margin: 8px 0 0; padding: 0; list-style: none; font-size: .9rem; color: var(--text-soft); }
+.task .steps li { margin-bottom: 5px; }
+.task .steps label {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  line-height: 18px;
+  cursor: pointer;
+}
+.task .steps input[type="checkbox"] { width: 18px; height: 18px; margin: 0; flex: none; accent-color: var(--ok); }
 
 /* Таймер */
 .timer { text-align: center; }
@@ -967,7 +990,7 @@ footer.foot p { max-width: none; }
   .nav.open .nav-extra { display: flex; gap: 2px; }
   .nav.open .nav-extra a { display: flex; }
   .nav-more { display: flex; }
-  .nav-more[aria-expanded="true"] { background: var(--accent-soft); color: var(--accent-ink); }
+  .nav-more[aria-expanded="true"] { background: var(--accent-soft); color: var(--accent-text); }
   .nav a .i { width: 23px; height: 23px; vertical-align: 0; }
   .nav a i, .nav-more i { font-style: normal; }
 
@@ -1421,17 +1444,42 @@ html.pin-locked body > *:not(#pin-gate):not(#wall) {
 }
 .inbox-panel h3 { margin: 0 0 4px; }
 .inbox-panel textarea { width: 100%; margin-bottom: 10px; }
-.inbox-items { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.inbox-items li {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 9px 10px;
-  background: var(--card-soft);
-  border-radius: var(--radius-xs);
+/* Ссылка на полный ящик: сам список записок живёт на странице «Разгон» */
+.inbox-go {
+  display: inline-block;
+  margin-top: 12px;
   font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--accent-text);
+  text-decoration: none;
+  border-bottom: 1.5px solid var(--accent-soft);
 }
-.inbox-items li span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.inbox-go:hover { border-bottom-color: var(--accent); }
+.inbox-go.empty { color: var(--text-soft); pointer-events: none; border-bottom-color: transparent; font-weight: 400; }
+
+/* Круглая кнопка микрофона */
+.mic-btn {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border: 1.5px solid var(--line);
+  border-radius: 50%;
+  background: var(--card);
+  color: var(--text-soft);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color var(--speed), color var(--speed), background var(--speed);
+}
+.mic-btn:hover { border-color: var(--accent); color: var(--text); }
+.mic-btn .i { width: 20px; height: 20px; vertical-align: 0; }
+.mic-btn.listening { border-color: var(--warn); color: var(--warn); background: var(--warn-soft); }
+
+/* Будильник в поле времени: иначе пустое «--:--» читается как сломанное поле */
+.tf-ic { display: inline-flex; color: var(--text-soft); margin-right: 4px; }
+.tf-ic .i { width: 20px; height: 20px; vertical-align: 0; }
+.timefield[data-empty="false"] .tf-ic { color: var(--accent); }
 
 @media (max-width: 680px) {
   /* Над нижним меню, чтобы кнопка не села на меню.
@@ -1483,7 +1531,7 @@ html.pin-locked body > *:not(#pin-gate):not(#wall) {
   color: var(--text);
   box-shadow: var(--shadow);
 }
-.rung.on .num { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); }
+.rung.on .num { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-text); }
 .rung.past { opacity: .6; }
 .rung .rtxt { flex: 1; min-width: 0; }
 .rung .rname { display: block; font-weight: 700; color: var(--text); }
@@ -1600,7 +1648,7 @@ html.pin-locked body > *:not(#pin-gate):not(#wall) {
 .energy button[aria-pressed="true"] {
   border-color: var(--accent);
   background: var(--accent-soft);
-  color: var(--accent-ink);
+  color: var(--accent-text);
 }
 
 /* ---------- Оценка времени ---------- */
@@ -1633,7 +1681,7 @@ html.pin-locked body > *:not(#pin-gate):not(#wall) {
   font-size: var(--fs-sm);
   color: var(--text-soft);
 }
-.bias b { font-family: var(--font-head); font-size: 1.5rem; color: var(--accent-ink); }
+.bias b { font-family: var(--font-head); font-size: 1.5rem; color: var(--accent-text); }
 
 /* ---------- Напоминания ---------- */
 .rem-list { list-style: none; margin: var(--sp-2) 0 0; padding: 0; display: grid; gap: 8px; }
@@ -1675,7 +1723,7 @@ html.pin-locked body > *:not(#pin-gate):not(#wall) {
   cursor: pointer;
   transition: background var(--speed), color var(--speed);
 }
-.tf-btn:hover { background: var(--accent-soft); color: var(--accent-ink); }
+.tf-btn:hover { background: var(--accent-soft); color: var(--accent-text); }
 .tf-btn .i { width: 18px; height: 18px; vertical-align: 0; }
 .tf-val {
   min-width: 2.2ch;
@@ -1727,32 +1775,56 @@ html.pin-locked body > *:not(#pin-gate):not(#wall) {
 .inbox-x:hover { background: var(--card-soft); color: var(--text); }
 .inbox-panel h3 { padding-right: 38px; }
 
-/* ---------- Ближайшее напоминание над кнопкой «Мысль» ---------- */
+/* ---------- Кружок напоминаний над кнопкой «Мысль» ----------
+   Такой же формы, как «Мысль»: иконка и число. Текста нет — это не уведомление,
+   а отметка «у тебя на сегодня что-то стоит». */
 .rem-chip {
   position: fixed;
   right: 18px;
-  bottom: 82px;
+  bottom: 84px;
   z-index: 44;
   display: flex;
   align-items: center;
-  gap: 8px;
-  max-width: min(300px, calc(100vw - 36px));
-  padding: 9px 14px;
+  gap: 7px;
+  min-height: 48px;
+  padding: 11px 18px;
   border: 1.5px solid var(--line);
   border-radius: 999px;
   background: var(--card);
   color: var(--text);
   font-size: var(--fs-sm);
+  font-weight: 600;
   text-decoration: none;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-lift);
+  transition: border-color var(--speed), color var(--speed);
 }
-.rem-chip:hover { border-color: var(--accent); }
-.rem-chip .i { color: var(--accent); }
-.rem-chip b { font-family: var(--font-head); }
-.rem-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rem-chip i { font-style: normal; }
+.rem-chip:hover { border-color: var(--accent); color: var(--text); }
+.rem-chip .i { width: 22px; height: 22px; vertical-align: 0; }
+.rem-n {
+  min-width: 21px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  line-height: 21px;
+  text-align: center;
+}
 
+/* На телефоне обе кнопки — кружки с цифрой: подписи съедали бы пол-экрана */
 @media (max-width: 680px) {
-  .rem-chip { right: 14px; bottom: calc(146px + env(safe-area-inset-bottom)); }
+  .rem-chip {
+    right: 14px;
+    bottom: calc(150px + env(safe-area-inset-bottom));
+    width: 56px;
+    height: 56px;
+    padding: 0;
+    justify-content: center;
+  }
+  .rem-chip i { display: none; }
+  .rem-chip .rem-n { position: absolute; top: -4px; right: -2px; }
 }
 @media print { .rem-chip { display: none !important; } }
 
@@ -1786,9 +1858,170 @@ html.pin-locked body > *:not(#pin-gate):not(#wall) {
 .subnav a[aria-current="page"] {
   background: var(--accent-soft);
   border-color: var(--accent);
-  color: var(--accent-ink);
+  color: var(--accent-text);
 }
 .subnav .i { color: currentColor; }
 @media (max-width: 980px) { .subnav { max-width: 100%; } }
 @media (max-width: 680px) { .subnav { padding: 12px 16px 0; } }
 @media print { .subnav { display: none !important; } }
+
+/* ---------- Иконка-кнопка в строке списка ----------
+   Крестик читался как «закрыть», а не «удалить», поэтому у удаления мусорка.
+   Пауза вместо надписи «Включено»: короче и понятнее, что это переключатель. */
+.row-ic {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border: 1.5px solid var(--line);
+  border-radius: 50%;
+  background: var(--card);
+  color: var(--text-soft);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color var(--speed), color var(--speed), background var(--speed);
+}
+.row-ic + .row-ic { margin-left: 6px; }
+.row-ic .i { width: 19px; height: 19px; vertical-align: 0; }
+.row-ic:hover { border-color: var(--accent); color: var(--text); }
+.row-ic.danger:hover { border-color: var(--warn); color: var(--warn); background: var(--warn-soft); }
+
+/* ---------- Форма напоминания ----------
+   Поля разной высоты, поэтому ровняем по нижнему краю: подписи сверху,
+   поле ввода и кнопка стоят на одной линии с нижним краем выбора времени. */
+.rem-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  margin-top: var(--sp-3);
+}
+.rf-field { display: flex; flex-direction: column; gap: 6px; margin: 0; }
+.rf-grow { flex: 1 1 240px; min-width: 0; }
+.rf-label { font-size: var(--fs-sm); font-weight: 600; color: var(--text-soft); }
+.rem-form input[type="text"] { width: 100%; }
+.rem-form .btn { flex: none; }
+@media (max-width: 560px) {
+  .rem-form { gap: 10px; }
+  .rem-form .btn { width: 100%; }
+}
+
+/* ---------- Таблица-сравнение «фразы» на странице «Близким» ----------
+   Остаётся таблицей на любом экране: две колонки рядом — в этом весь смысл,
+   «вот так ранит — вот так лучше». Просто не даём ей требовать прокрутки:
+   минимальная ширина снимается, левая колонка уже, строки переносятся. */
+.tbl-compare td:last-child { color: var(--ok); font-weight: 600; }
+@media (max-width: 640px) {
+  .tbl-compare { overflow-x: visible; }
+  .tbl-compare table.data { min-width: 0; table-layout: fixed; font-size: .86rem; }
+  .tbl-compare th, .tbl-compare td { padding: 9px 8px; overflow-wrap: anywhere; }
+  .tbl-compare th:first-child, .tbl-compare td:first-child { width: 42%; }
+  .tbl-compare th { font-size: .66rem; letter-spacing: .05em; }
+}
+
+
+/* ---------- Сетка «четыре входа» ----------
+   Четыре карточки в ряд на широком экране и 2×2 на телефоне: автоподбор колонок
+   ставил три в строку и одну сиротой. */
+.grid.g4 { grid-template-columns: repeat(2, 1fr); }
+@media (min-width: 860px) { .grid.g4 { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 360px) { .grid.g4 { grid-template-columns: 1fr; } }
+
+/* Кризисный блок не должен прилипать к карточке над ним */
+.note.crisis { margin-top: var(--sp-4); }
+
+/* ---------- Кнопка «скрыть блок» ----------
+   Маленькая и бледная: это не действие, за которым человек сюда пришёл. */
+.card.has-hide { position: relative; }
+.card-hide {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--text-soft);
+  opacity: .45;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity var(--speed), background var(--speed);
+}
+.card-hide:hover { opacity: 1; background: var(--card-soft); }
+.card-hide .i { width: 17px; height: 17px; vertical-align: 0; }
+.card.has-hide > h2, .card.has-hide > h3 { padding-right: 36px; }
+
+/* Поле «добавить мысль» прямо в блоке ящика */
+.inbox-add { margin-bottom: var(--sp-3); }
+.inbox-add textarea { width: 100%; }
+
+
+/* ---------- Таблица записей на узком экране ----------
+   Остаётся таблицей: колонки — это смысл дневника. Чтобы не требовать прокрутки,
+   ячейка режется до трёх строк, а вся запись открывается окном по нажатию на строку. */
+.tbl-rows tbody tr { cursor: pointer; }
+.tbl-rows tbody tr:hover { background: var(--card-soft); }
+.tbl-rows td.act { white-space: nowrap; }
+@media (max-width: 640px) {
+  .tbl-rows { overflow-x: visible; }
+  /* Селекторы нарочно длинные: базовые правила table.data специфичнее коротких,
+     и без этого на телефоне не применялись ни размер шрифта, ни регистр заголовков */
+  .tbl-rows table.data { min-width: 0; table-layout: fixed; font-size: .78rem; }
+  /* break-word вместо anywhere: иначе браузер рвёт даже те слова, что помещаются,
+     и «Настроение» превращается в «НАС ТРОЕ НИЕ» */
+  .tbl-rows table.data th,
+  .tbl-rows table.data td { padding: 7px 4px; overflow-wrap: break-word; }
+  .tbl-rows table.data th {
+    font-size: .6rem;
+    letter-spacing: 0;
+    text-transform: none;
+    font-weight: 700;
+    line-height: 1.25;
+    padding-bottom: 6px;
+  }
+  .tbl-rows .clamp { -webkit-line-clamp: 3; line-clamp: 3; }
+  .tbl-rows .more { display: none; }          /* разворачиваем не «…», а окном записи */
+  .tbl-rows table.data td.act { width: 36px; padding: 7px 0; }
+  .tbl-rows td.act .row-ic { width: 32px; height: 32px; }
+  .tbl-rows td.act .row-ic + .row-ic { margin: 6px 0 0; display: flex; }
+  .tbl-rows td.act { display: table-cell; }
+}
+
+/* ---------- Окно с одной записью ---------- */
+.modal-back {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: color-mix(in srgb, var(--text) 38%, transparent);
+}
+.modal {
+  position: relative;
+  width: min(460px, 100%);
+  max-height: 84vh;
+  overflow: auto;
+  padding: var(--sp-4);
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lift);
+}
+.modal h3 { margin: 0 0 var(--sp-3); padding-right: 38px; }
+.modal-field { margin-bottom: 14px; }
+.modal-field span {
+  display: block;
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+  margin-bottom: 3px;
+}
+.modal-field p { margin: 0; overflow-wrap: anywhere; }
+@media print { .modal-back { display: none !important; } }

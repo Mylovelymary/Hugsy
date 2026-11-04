@@ -32,7 +32,7 @@ function renderPanicHome(root) {
   html += '<a class="sos" href="list.html?state=panic"><b>Тебе плохо прямо сейчас?</b>' +
           '<span>Жми сюда — поможем в несколько шагов</span></a>';
 
-  html += '<h2><span class="eyebrow">С чего начать</span>Как тебе сейчас?</h2><div class="grid">';
+  html += '<h2><span class="eyebrow">С чего начать</span>Как тебе сейчас?</h2><div class="grid g4">';
   for (var i = 0; i < STATES.length; i++) {
     html += '<a class="tile" href="list.html?state=' + STATES[i].id + '">' +
       '<span class="ico">' + iconOr(STATES[i].icon) + '</span>' +
@@ -703,6 +703,30 @@ function exNotYet(e, host) {
     'Открыть упражнение ' + icon('right') + '</a>';
 }
 
+/* ---------- Подменю раздела ----------
+   «Сейчас плохо» отсюда убрано: на главной аптечки то же самое делает большая кнопка,
+   а две кнопки с одним действием сбивают с толку. «Моя аптечка» появляется только
+   когда человек отметил звёздочкой хотя бы один способ — до этого она пустая и мешает. */
+function renderPanicSub() {
+  var host = document.getElementById('panicSub');
+  if (!host) return;
+  if (!favs().length) { host.innerHTML = ''; return; }
+
+  var page = location.pathname.split('/').pop() || 'index.html';
+  var fav = /fav=1/.test(location.search);
+  var items = [
+    { href: 'list.html', label: 'Все способы', icon: 'grid', on: page.indexOf('list') === 0 && !fav },
+    { href: 'list.html?fav=1', label: 'Моя аптечка', icon: 'star', on: fav }
+  ];
+  var html = '<nav class="subnav" aria-label="Разделы аптечки">';
+  for (var i = 0; i < items.length; i++) {
+    html += '<a href="' + items[i].href + '"' + (items[i].on ? ' aria-current="page"' : '') + '>' +
+      '<span data-icon="' + items[i].icon + '"></span>' + items[i].label + '</a>';
+  }
+  host.innerHTML = html + '</nav>';
+  mountIcons(host);
+}
+
 /* ---------- Старт ---------- */
 document.addEventListener('DOMContentLoaded', function () {
   var root = document.getElementById('panicRoot');
@@ -711,6 +735,7 @@ document.addEventListener('DOMContentLoaded', function () {
   if (page.indexOf('list') === 0) renderPanicList(root);
   else if (page.indexOf('ex') === 0) renderPanicEx(root);
   else renderPanicHome(root);
+  renderPanicSub();
   mountIcons(root);
 
   document.body.addEventListener('click', function (ev) {
@@ -718,6 +743,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!f) return;
     var on = toggleFav(f.dataset.fav);
     f.setAttribute('aria-pressed', on ? 'true' : 'false');
+    renderPanicSub();   // первая звёздочка открывает «мою аптечку» в подменю
     toast(on ? 'Добавлено в твою аптечку' : 'Убрано из аптечки');
   });
 });

@@ -153,6 +153,7 @@ function thRenderAll() {
 function thInit() {
   if (!document.getElementById('themeList')) return;
   thRenderAll();
+  renderQuizCard();
 
   document.body.addEventListener('click', function (e) {
     var el = e.target.closest('[data-theme-pick],[data-pat],[data-act],[data-fit]');
@@ -183,6 +184,11 @@ function thInit() {
       return;
     }
     switch (el.dataset.act) {
+      case 'forgetquiz':
+        Store.del('quiz.last');
+        renderQuizCard();
+        toast('Результат забыт. Анкету можно пройти заново когда угодно');
+        break;
       case 'pickimg': thPickImage(); break;
       case 'useimg': w.type = 'image'; wallSet(w); thRenderAll(); break;
       case 'dropimg':
@@ -238,3 +244,32 @@ function thInit() {
 }
 
 document.addEventListener('DOMContentLoaded', thInit);
+
+/* ---------- Прошлый результат анкеты ----------
+   Сами ответы мы не храним — только итог, поэтому «поправить» означает
+   пройти заново. Пишем это прямо, чтобы не обещать лишнего. */
+function renderQuizCard() {
+  var host = document.getElementById('quizCard');
+  if (!host) return;
+  var last = Store.get('quiz.last', null);
+  var html = '<h2>' + icon('compass') + 'Твои ответы в анкете</h2>';
+  if (!last || !last.top || !last.top.length) {
+    html += '<p class="muted">Анкета пока не пройдена. Это 16 коротких вопросов — ' +
+      'они подскажут, с чего разумно начать.</p>' +
+      '<a class="btn" href="quiz.html">Пройти анкету</a>';
+  } else {
+    var names = [];
+    for (var i = 0; i < last.top.length && i < 3; i++) {
+      var d = (typeof DOMAINS !== 'undefined') ? DOMAINS[last.top[i].id] : null;
+      names.push(d ? d.title : last.top[i].id);
+    }
+    html += '<p class="muted">Последний раз: ' + esc(last.date) + '. Направления: ' +
+      esc(names.join(', ')) + '.</p>' +
+      '<p class="muted">Сами ответы нигде не хранятся — только этот итог. Чтобы его изменить, ' +
+      'анкету нужно пройти заново: это пять минут, и состояние за неделю правда меняется.</p>' +
+      '<div class="btn-row"><a class="btn" href="quiz.html">Пройти заново</a>' +
+      '<button class="btn ghost" data-act="forgetquiz">Забыть результат</button></div>';
+  }
+  host.innerHTML = html;
+  mountIcons(host);
+}

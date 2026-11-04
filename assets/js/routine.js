@@ -1,4 +1,4 @@
-/* Рутина дня: чеклист, дробление задач, таймер фокуса, инструменты под СДВГ.
+/* Раздел «Дела»: чеклист, дробление задач, таймер фокуса, инструменты под СДВГ.
    Тон: никогда не укоряем за пропуски. Серия не обнуляется.
 
    Блоки под СДВГ (очередь 3 роадмапа): силы на сегодня, лесенка запуска,
@@ -134,7 +134,7 @@ function taskHTML(t) {
   if (t.steps && t.steps.length) {
     html += '<ul class="steps">';
     for (var j = 0; j < t.steps.length; j++) {
-      html += '<li><label style="cursor:pointer"><input type="checkbox" style="width:16px;height:16px;margin-right:6px"' +
+      html += '<li><label><input type="checkbox"' +
         ' data-sub="' + t.id + ':' + j + '"' + (t.steps[j].done ? ' checked' : '') + '>' +
         (t.steps[j].done ? '<s>' + esc(t.steps[j].text) + '</s>' : esc(t.steps[j].text)) + '</label></li>';
     }
@@ -144,10 +144,10 @@ function taskHTML(t) {
   if (askFactFor === t.id) html += factFormHTML(t);
 
   html += '</div><div style="white-space:nowrap">' +
-    '<button class="btn sm ghost ico-only" data-split="' + t.id + '" title="Разбить на шаги" ' +
-    'aria-label="Разбить на шаги">' + icon('steps') + '</button> ' +
-    '<button class="btn sm ghost ico-only" data-rm="' + t.id + '" aria-label="Удалить задачу">' +
-    icon('close') + '</button></div></div>';
+    '<button class="row-ic" data-split="' + t.id + '" title="Разбить на шаги" ' +
+    'aria-label="Разбить на шаги">' + icon('steps') + '</button>' +
+    '<button class="row-ic danger" data-rm="' + t.id + '" title="Удалить" ' +
+    'aria-label="Удалить задачу">' + icon('trash') + '</button></div></div>';
   return html;
 }
 
@@ -412,6 +412,9 @@ function setTimerCfg(key, value) {
    В «Тихом режиме» и при prefers-reduced-motion кольцо движется без плавности. */
 function tClock() {
   document.getElementById('clock').textContent = fmtClock(timer.left);
+  // Пока таймер стоит, под числом «минут» — иначе непонятно, 20 чего это.
+  // Когда пошёл отсчёт, честнее «осталось»: там уже минуты и секунды.
+  document.getElementById('ringUnit').textContent = timer.run ? 'осталось' : 'минут';
   var total = (timer.mode === 'focus' ? tcfg.focus : tcfg.brk) * 60;
   var left = Math.max(0, Math.min(1, total ? timer.left / total : 0));
   var ring = document.getElementById('ringFg');
@@ -422,7 +425,6 @@ function tRender() {
   tClock();
   document.getElementById('tstart').innerHTML =
     timer.run ? icon('pause') + ' Пауза' : icon('play') + ' Начать';
-  document.getElementById('ringMode').textContent = timer.mode === 'focus' ? 'фокус' : 'перерыв';
   document.getElementById('tstate').textContent = timer.mode === 'focus'
     ? 'Фокус. Делай одно дело, остальное потом.'
     : 'Перерыв. Встань, разомнись, попей воды.';
@@ -485,10 +487,12 @@ function renderReminders() {
       var r = list[i];
       html += '<li class="' + (r.on ? '' : 'off') + '"><span class="rt">' + esc(r.time) + '</span>' +
         '<span class="rx">' + esc(r.text) + '</span>' +
-        '<button class="btn sm ghost" data-rem-on="' + r.id + '" aria-pressed="' + !!r.on + '">' +
-        (r.on ? 'Включено' : 'Выключено') + '</button>' +
-        '<button class="btn sm ghost ico-only" data-rem-del="' + r.id +
-        '" aria-label="Удалить напоминание">' + icon('close') + '</button></li>';
+        '<button class="row-ic" data-rem-on="' + r.id + '" aria-pressed="' + !!r.on + '"' +
+        ' title="' + (r.on ? 'Поставить на паузу' : 'Снова включить') + '"' +
+        ' aria-label="' + (r.on ? 'Поставить напоминание на паузу' : 'Снова включить напоминание') + '">' +
+        icon(r.on ? 'pause' : 'play') + '</button>' +
+        '<button class="row-ic danger" data-rem-del="' + r.id +
+        '" title="Удалить" aria-label="Удалить напоминание">' + icon('trash') + '</button></li>';
     }
     html += '</ul>';
     host.innerHTML = html;
@@ -542,11 +546,93 @@ function renderInboxCard() {
   for (var i = 0; i < list.length; i++) {
     html += '<li><span class="rx">' + esc(list[i].text) + '</span>' +
       '<button class="btn sm ghost" data-ibx-task="' + list[i].id + '">В задачу</button>' +
-      '<button class="btn sm ghost ico-only" data-ibx-del="' + list[i].id +
-      '" aria-label="Убрать записку">' + icon('close') + '</button></li>';
+      '<button class="row-ic danger" data-ibx-del="' + list[i].id +
+      '" title="Убрать" aria-label="Убрать записку">' + icon('trash') + '</button></li>';
   }
   html += '</ul>';
   host.innerHTML = html;
+}
+
+/* ---------- Скрытие блоков ----------
+   Страница большая, и не всё нужно каждому: кому-то мешает таймер, кому-то лесенка.
+   Блок убирается крестиком в своём углу и возвращается списком внизу страницы.
+   Ничего не удаляется — только прячется, и всегда видно, что спрятано. */
+var CARDS = [
+  { id: 'energy', name: 'Сколько сегодня сил' },
+  { id: 'daybar', name: 'Полоса дня' },
+  { id: 'ladder', name: 'Не могу начать' },
+  { id: 'timer',  name: 'Таймер фокуса' },
+  { id: 'bias',   name: 'Сколько уходит времени' },
+  { id: 'rem',    name: 'Напоминания' },
+  { id: 'inbox',  name: 'Ящик мыслей' },
+  { id: 'streak', name: 'Дни, когда ты заходишь' }
+];
+
+function hiddenCards() { return Store.get('routine.hidden', []); }
+
+function setCardHidden(id, hide) {
+  var list = hiddenCards();
+  var i = list.indexOf(id);
+  if (hide && i < 0) list.push(id);
+  if (!hide && i >= 0) list.splice(i, 1);
+  Store.set('routine.hidden', list);
+  applyHidden();
+}
+
+function applyHidden() {
+  var list = hiddenCards();
+  for (var i = 0; i < CARDS.length; i++) {
+    var card = document.querySelector('[data-card="' + CARDS[i].id + '"]');
+    if (card) card.hidden = list.indexOf(CARDS[i].id) >= 0;
+  }
+
+  var host = document.getElementById('hiddenCards');
+  if (!host) return;
+  if (!list.length) { host.innerHTML = ''; return; }
+
+  var html = '<div class="card soft"><h3>' + icon('undo') + 'Скрытые блоки</h3>' +
+    '<p class="muted">Они никуда не делись. Верни тот, который снова пригодится.</p>' +
+    '<div class="btn-row">';
+  for (var j = 0; j < CARDS.length; j++) {
+    if (list.indexOf(CARDS[j].id) < 0) continue;
+    html += '<button class="btn sm ghost" data-show="' + CARDS[j].id + '">' +
+      icon('plus') + ' ' + esc(CARDS[j].name) + '</button>';
+  }
+  host.innerHTML = html + '</div></div>';
+  mountIcons(host);
+}
+
+/* Кнопку «скрыть» ставим в угол каждого блока из списка */
+function mountHideButtons() {
+  for (var i = 0; i < CARDS.length; i++) {
+    var card = document.querySelector('[data-card="' + CARDS[i].id + '"]');
+    if (!card || card.querySelector('.card-hide')) continue;
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'card-hide';
+    btn.dataset.hide = CARDS[i].id;
+    btn.title = 'Скрыть блок';
+    btn.setAttribute('aria-label', 'Скрыть блок «' + CARDS[i].name + '»');
+    btn.innerHTML = icon('close');
+    card.classList.add('has-hide');
+    card.appendChild(btn);
+  }
+}
+
+/* ---------- Добавление мысли прямо на странице ----------
+   Раньше положить мысль можно было только из плавающей кнопки — на самой странице
+   ящика кнопки не было, и это сбивало с толку. */
+function renderInboxAdd() {
+  var host = document.getElementById('inboxAdd');
+  if (!host) return;
+  host.innerHTML =
+    '<div class="inbox-add">' +
+    '<textarea id="inboxPageText" rows="2" placeholder="Что всплыло в голове"></textarea>' +
+    '<div class="btn-row" style="margin-top:10px">' +
+    micBtnHTML('data-ibx-mic="1"') +
+    '<button class="btn sm" data-ibx-add="1">' + icon('plus') + ' Добавить мысль</button>' +
+    '</div></div>';
+  mountIcons(host);
 }
 
 /* ---------- Старт ---------- */
@@ -556,7 +642,10 @@ function rInit() {
   renderTasks();
   renderBias();
   renderReminders();
+  renderInboxAdd();
   renderInboxCard();
+  mountHideButtons();
+  applyHidden();
   markVisit();
 
   document.getElementById('remTimeHost').innerHTML = timeFieldHTML('remTime', '', false);
@@ -569,6 +658,13 @@ function rInit() {
 
   // Полоса дня живёт по часам: без обновления метка «сейчас» начинает врать
   dayIv = setInterval(renderDayBar, 60000);
+
+  // Пришли по кружку с будильником — доводим до блока напоминаний сами:
+  // браузер прыгает к якорю раньше, чем блок отрисован
+  if (location.hash === '#remCard' || location.hash === '#inboxCard') {
+    var target = document.querySelector(location.hash);
+    if (target) setTimeout(function () { target.scrollIntoView({ block: 'start' }); }, 60);
+  }
 
   document.getElementById('tstart').addEventListener('click', function () {
     // Разрешение на уведомления спрашиваем только по явному действию человека
@@ -679,6 +775,27 @@ function rInit() {
       }
       return;
     }
+    var hide = e.target.closest('[data-hide]');
+    if (hide) { setCardHidden(hide.dataset.hide, true); toast('Блок скрыт. Вернуть можно внизу страницы'); return; }
+    var show = e.target.closest('[data-show]');
+    if (show) { setCardHidden(show.dataset.show, false); return; }
+
+    var ibxMic = e.target.closest('[data-ibx-mic]');
+    if (ibxMic) { startMicInto(document.getElementById('inboxPageText'), ibxMic); return; }
+
+    var ibxAdd = e.target.closest('[data-ibx-add]');
+    if (ibxAdd) {
+      var field = document.getElementById('inboxPageText');
+      var txt = field.value.trim();
+      if (!txt) { toast('Напиши хоть пару слов'); return; }
+      inboxAdd(txt);
+      field.value = '';
+      renderInboxCard();
+      inboxRender();
+      toast('В ящике. Голову можно освободить 🐧');
+      return;
+    }
+
     var ibd = e.target.closest('[data-ibx-del]');
     if (ibd) {
       inboxDel(ibd.dataset.ibxDel);

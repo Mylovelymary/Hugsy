@@ -263,18 +263,22 @@ function renderPanel() {
       '<p>Пока пусто. Первая запись — самая трудная, дальше проще.</p>' +
       '<button class="btn" data-act="addrow">Сделать первую запись</button></div>';
   } else {
-    html += '<div class="tbl-wrap"><table class="data"><thead><tr>';
+    // tbl-rows: на узком экране таблица остаётся таблицей, но ячейки режутся
+    // до трёх строк, а вся запись открывается в окне по нажатию на строку
+    html += '<div class="tbl-wrap tbl-rows"><table class="data"><thead><tr>';
     for (var i = 0; i < t.cols.length; i++) html += '<th>' + esc(t.cols[i].name) + '</th>';
     html += '<th class="act"></th></tr></thead><tbody>';
     for (var r = t.rows.length - 1; r >= 0; r--) { // новые сверху
       var row = t.rows[r];
-      html += '<tr>';
+      html += '<tr data-row="' + row.id + '">';
       for (var c = 0; c < t.cols.length; c++) {
-        html += '<td><div class="clamp">' + esc(cellText(t.cols[c], row.c[t.cols[c].id])) + '</div></td>';
+        html += '<td data-label="' + esc(t.cols[c].name) + '"><div class="clamp">' +
+          esc(cellText(t.cols[c], row.c[t.cols[c].id])) + '</div></td>';
       }
-      html += '<td class="act"><button class="btn sm ghost ico-only" data-edit="' + row.id + '" aria-label="Изменить">' +
-              icon('pencil') + '</button> <button class="btn sm ghost ico-only" data-del="' + row.id +
-              '" aria-label="Удалить">' + icon('close') + '</button></td></tr>';
+      html += '<td class="act"><button class="row-ic" data-edit="' + row.id + '" title="Изменить" ' +
+              'aria-label="Изменить запись">' + icon('pencil') + '</button>' +
+              '<button class="row-ic danger" data-del="' + row.id +
+              '" title="Удалить" aria-label="Удалить запись">' + icon('trash') + '</button></td></tr>';
     }
     html += '</tbody></table></div>';
   }
@@ -298,6 +302,41 @@ function renderPanel() {
   p.innerHTML = html;
   fillEmotions();
   initClamps();
+}
+
+/* ---------- Запись целиком в окне ----------
+   На телефоне ячейка режется до трёх строк — длинную запись иначе не показать,
+   не заставляя таскать таблицу вбок. Нажатие на строку открывает её целиком,
+   оттуда же можно изменить или удалить. */
+function openRow(rowId) {
+  var t = tFind(curId);
+  if (!t) return;
+  var row = null;
+  for (var i = 0; i < t.rows.length; i++) if (t.rows[i].id === rowId) row = t.rows[i];
+  if (!row) return;
+
+  var html = '<div class="modal-back" id="rowModal"><div class="modal" role="dialog" aria-modal="true" aria-label="Запись">' +
+    '<button type="button" class="inbox-x" data-act="closerow" aria-label="Закрыть">' + icon('close') + '</button>' +
+    '<h3>Запись</h3>';
+  for (var c = 0; c < t.cols.length; c++) {
+    var val = cellText(t.cols[c], row.c[t.cols[c].id]);
+    html += '<div class="modal-field"><span>' + esc(t.cols[c].name) + '</span><p>' +
+      (val ? esc(val) : '—') + '</p></div>';
+  }
+  html += '<div class="btn-row" style="margin-top:16px">' +
+    '<button class="btn sm" data-edit="' + row.id + '">' + icon('pencil') + ' Изменить</button>' +
+    '<button class="btn sm ghost" data-del="' + row.id + '">' + icon('trash') + ' Удалить</button>' +
+    '<button class="btn sm ghost" data-act="closerow">Закрыть</button>' +
+    '</div></div></div>';
+
+  var host = document.getElementById('dialogs');
+  host.innerHTML = html;
+  mountIcons(host);
+}
+
+function closeRow() {
+  var m = document.getElementById('rowModal');
+  if (m) m.remove();
 }
 
 /* Кнопка «…» появляется только там, где текст реально не поместился */
@@ -440,8 +479,8 @@ function renderColList() {
       html += '<option value="' + COL_TYPES[j].id + '"' + (COL_TYPES[j].id === c.type ? ' selected' : '') + '>' +
               COL_TYPES[j].label + '</option>';
     }
-    html += '</select><button class="btn sm ghost ico-only" data-rmcol="' + i + '" aria-label="Убрать колонку">' +
-      icon('close') + '</button></div>';
+    html += '</select><button class="row-ic danger" data-rmcol="' + i + '" title="Убрать колонку" ' +
+      'aria-label="Убрать колонку">' + icon('trash') + '</button></div>';
   }
   document.getElementById('colList').innerHTML = html;
 }
@@ -549,6 +588,15 @@ function tInit() {
       return;
     }
 
+    var back = e.target.closest('.modal-back');
+    if (back && e.target === back) { closeRow(); return; }
+
+    var rowEl = e.target.closest('tr[data-row]');
+    if (rowEl && !e.target.closest('button') && !e.target.closest('.more')) {
+      openRow(rowEl.dataset.row);
+      return;
+    }
+
     var el = e.target.closest('[data-act],[data-edit],[data-del],[data-tpl],[data-rmcol],[data-mic]');
     if (!el) return;
     var t = tFind(curId);
@@ -568,11 +616,14 @@ function tInit() {
     }
     if (el.dataset.edit) {
       var row = t.rows.filter(function (x) { return x.id === el.dataset.edit; })[0];
+      closeRow();
       if (row) renderForm(row);
       return;
     }
     if (el.dataset.del) {
+      // Спрашиваем всегда: случайно задетая мусорка не должна стирать запись
       if (!confirm('Удалить эту запись? Отменить будет нельзя.')) return;
+      closeRow();
       t.rows = t.rows.filter(function (x) { return x.id !== el.dataset.del; });
       tSave();
       renderPanel();
@@ -609,6 +660,9 @@ function tInit() {
         break;
       case 'closedlg':
         document.getElementById('dialogs').innerHTML = '';
+        break;
+      case 'closerow':
+        closeRow();
         break;
       case 'rename':
         var nn = prompt('Новое название таблицы:', t.name);

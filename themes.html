@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="assets/css/style.css">
 <script src="data/icons.js" defer></script>
 <script src="data/patterns.js" defer></script>
+<script src="data/quiz-data.js" defer></script>
 <script src="assets/js/app.js" defer></script>
 <script src="assets/js/themes.js" defer></script>
 </head>
@@ -25,12 +26,11 @@
   </a>
   <nav class="nav" aria-label="Разделы">
     <a href="panic/index.html" data-nav="main"><span data-icon="buoy"></span><i>Аптечка</i></a>
-    <a href="routine.html" data-nav="main"><span data-icon="zap"></span><i>Разгон</i></a>
+    <a href="routine.html" data-nav="main"><span data-icon="zap"></span><i>Дела</i></a>
     <a href="tracker.html" data-nav="main"><span data-icon="notebook"></span><i>Дневник</i></a>
-    <a href="sensory.html" data-nav="main"><span data-icon="headphones"></span><i>Тишина</i></a>
+    <a href="sensory.html" data-nav="main"><span data-icon="headphones"></span><i>Передышка</i></a>
     <div class="nav-extra">
       <a href="quiz.html"><span data-icon="compass"></span><i>Анкета</i></a>
-      <a href="resources.html"><span data-icon="users"></span><i>Помощь</i></a>
       <a href="close.html"><span data-icon="heart"></span><i>Близким</i></a>
       <a href="themes.html" aria-current="page"><span data-icon="gear"></span><i>Настройки</i></a>
     </div>
@@ -38,10 +38,18 @@
   </nav>
 </header>
 
+  <nav class="subnav" aria-label="Разделы настроек">
+    <a href="themes.html" aria-current="page"><span data-icon="palette"></span>Оформление</a>
+    <a href="quiz.html"><span data-icon="compass"></span>Твои ответы</a>
+    <a href="resources.html"><span data-icon="users"></span>Куда обратиться</a>
+  </nav>
+
 <main class="wrap">
   <h1>Настройки</h1>
   <p class="muted">Настрой так, чтобы хотелось сюда возвращаться. Всё меняется сразу — видно прямо на этой странице.
     Выбор сохраняется на твоём устройстве и действует на всех страницах.</p>
+
+  <div class="card" id="quizCard"></div>
 
   <div class="card">
     <h2><span data-icon="palette"></span>Цвета</h2>

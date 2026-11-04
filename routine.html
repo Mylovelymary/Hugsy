@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Разгон — Хагси</title>
+<title>Дела — Хагси</title>
 <meta name="description" content="Раздел для тех, кому тяжело начинать и держать фокус: лесенка запуска, таймер, полоса дня, ящик мыслей. Это часто про СДВГ.">
 <meta name="theme-color" content="#eaf4fb">
 <link rel="manifest" href="manifest.webmanifest">
@@ -25,12 +25,11 @@
   </a>
   <nav class="nav" aria-label="Разделы">
     <a href="panic/index.html" data-nav="main"><span data-icon="buoy"></span><i>Аптечка</i></a>
-    <a href="routine.html" data-nav="main" aria-current="page"><span data-icon="zap"></span><i>Разгон</i></a>
+    <a href="routine.html" data-nav="main" aria-current="page"><span data-icon="zap"></span><i>Дела</i></a>
     <a href="tracker.html" data-nav="main"><span data-icon="notebook"></span><i>Дневник</i></a>
-    <a href="sensory.html" data-nav="main"><span data-icon="headphones"></span><i>Тишина</i></a>
+    <a href="sensory.html" data-nav="main"><span data-icon="headphones"></span><i>Передышка</i></a>
     <div class="nav-extra">
       <a href="quiz.html"><span data-icon="compass"></span><i>Анкета</i></a>
-      <a href="resources.html"><span data-icon="users"></span><i>Помощь</i></a>
       <a href="close.html"><span data-icon="heart"></span><i>Близким</i></a>
       <a href="themes.html"><span data-icon="gear"></span><i>Настройки</i></a>
     </div>
@@ -42,13 +41,13 @@
   <div class="hero" style="padding-bottom:0">
     <img class="mascot hero-mascot" src="assets/img/goose.webp" width="380" height="616"
          alt="Гусь машет крылом" style="width:clamp(120px,32vw,160px)">
-    <h1>Разгон</h1>
+    <h1>Дела</h1>
   </div>
   <p class="muted center">Если тяжело начинать, время утекает незаметно, а день рассыпается —
     тебе сюда. Так часто бывает при СДВГ, но диагноз для этого раздела не нужен.</p>
   <p class="muted center" id="dayNote">Сделанное наполовину — всё равно сделанное. Галочка за «начал» тоже считается.</p>
 
-  <div class="card soft">
+  <div class="card soft" data-card="energy">
     <h2><span data-icon="Activity"></span>Сколько сегодня сил</h2>
     <p class="muted">Честный ответ помогает больше, чем героический. В день, когда сил мало,
       список сам сожмётся до трёх пунктов — остальное никуда не денется.</p>
@@ -56,7 +55,7 @@
     <p class="muted" id="energyNote" style="margin:12px 0 0"></p>
   </div>
 
-  <div class="card">
+  <div class="card" data-card="daybar">
     <h2><span data-icon="Hourglass"></span>Полоса дня</h2>
     <p class="muted">Время плохо чувствуется изнутри — пусть будет видно снаружи.
       Серое — то, что уже прошло, это просто факт, а не упрёк.</p>
@@ -74,7 +73,7 @@
     <div id="taskForm"></div>
   </div>
 
-  <div class="card soft">
+  <div class="card soft" data-card="ladder">
     <h2><span data-icon="Footprints"></span>Не могу начать</h2>
     <p class="muted">Это не лень. Мозгу тяжело запускаться — значит, спускаемся по ступеням,
       пока шаг не станет таким маленьким, что отказаться глупо.</p>
@@ -82,7 +81,7 @@
     <div class="btn-row" id="ladderBtns" style="margin-top:14px"></div>
   </div>
 
-  <div class="card timer">
+  <div class="card timer" data-card="timer">
     <h2><span data-icon="clock"></span>Таймер фокуса</h2>
     <div class="ring-wrap">
       <svg viewBox="0 0 120 120" aria-hidden="true">
@@ -92,7 +91,7 @@
       </svg>
       <div class="inner">
         <div class="clock" id="clock">20:00</div>
-        <span class="ring-mode" id="ringMode">фокус</span>
+        <span class="ring-mode" id="ringUnit">минут</span>
       </div>
     </div>
     <p class="state" id="tstate">Фокус. Делай одно дело, остальное потом.</p>
@@ -126,39 +125,47 @@
       отрезок лучше большого брошенного.</p>
   </div>
 
-  <div class="card">
+  <div class="card" data-card="bias">
     <h2><span data-icon="Hourglass"></span>Сколько на самом деле уходит времени</h2>
     <p class="muted">Недооценка времени — не черта характера, а величина, которую можно измерить.
       Измеришь — сможешь закладывать в план. Отмечай факт у задач, где ставил оценку.</p>
     <div id="bias"></div>
   </div>
 
-  <div class="card">
+  <div class="card" id="remCard" data-card="rem">
     <h2><span data-icon="AlarmClock"></span>Напоминания</h2>
     <p class="muted">Только те, что ты поставишь сам. Никаких «ты давно не заходил»
       и «прогресс под угрозой» — мы так не делаем.</p>
-    <div class="f" style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
-      <div class="f" style="flex:0 0 auto"><span>Во сколько</span><div id="remTimeHost"></div></div>
-      <label class="f" style="flex:1 1 220px"><span>Что напомнить</span>
-        <input type="text" id="remText" placeholder="Например: выпить воды и размяться"></label>
-      <button class="btn sm" data-act="addrem" style="margin-bottom:2px">Поставить</button>
+    <div class="rem-form">
+      <div class="rf-field">
+        <span class="rf-label">Во сколько</span>
+        <div id="remTimeHost"></div>
+      </div>
+      <label class="rf-field rf-grow">
+        <span class="rf-label">Что напомнить</span>
+        <input type="text" id="remText" placeholder="Например: выпить воды и размяться">
+      </label>
+      <button class="btn" data-act="addrem">Поставить</button>
     </div>
     <div id="remList"></div>
     <p class="muted" id="remState" style="margin-top:14px"></p>
   </div>
 
-  <div class="card">
+  <div class="card" id="inboxBlock" data-card="inbox">
     <h2><span data-icon="MessageCircle"></span>Ящик мыслей</h2>
     <p class="muted">Всё, что ты бросал в ящик кнопкой в углу страницы. Мысль можно
       превратить в задачу на сегодня или просто убрать — разобрать не обязательно.</p>
+    <div id="inboxAdd"></div>
     <div id="inboxCard"></div>
   </div>
 
-  <div class="card">
+  <div class="card" data-card="streak">
     <h3><span data-icon="calendar"></span>Дни, когда ты сюда заходишь</h3>
     <p id="streak" class="muted"></p>
     <p class="muted">Серия не обнуляется в наказание: пропуск просто не считается. Пингвин ждёт столько, сколько нужно.</p>
   </div>
+  <div id="hiddenCards"></div>
+
 </main>
 
 <footer class="foot">

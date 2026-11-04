@@ -464,6 +464,7 @@ function timeFieldHTML(id, value, allowEmpty) {
   return '<div class="timefield" id="' + id + '-tf" data-empty="' + (v ? 'false' : 'true') + '">' +
     '<input type="hidden" id="' + id + '" value="' + v + '">' +
     '<div class="tf-box">' +
+      '<span class="tf-ic" aria-hidden="true">' + icon('AlarmClock') + '</span>' +
       tfUnitHTML(id, 'h', v) + '<span class="tf-sep">:</span>' + tfUnitHTML(id, 'm', v) +
     '</div>' +
     (allowEmpty ? '<button type="button" class="btn sm ghost" data-tclear="' + id + '">Без времени</button>' : '') +
@@ -535,11 +536,15 @@ function hasSpeech() {
   return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
 }
 
+/* Круглая кнопка с одним микрофоном: слово «Надиктовать» занимало место
+   в каждой ячейке таблицы, а смысл иконки и так понятен. Подпись осталась
+   в title и aria-label — для скринридера и для тех, кто наводит мышь. */
 function micBtnHTML(attr, style) {
   if (!hasSpeech()) return '';
-  return '<button type="button" class="btn sm ghost" ' + attr +
+  return '<button type="button" class="mic-btn" ' + attr +
          (style ? ' style="' + style + '"' : '') +
-         ' title="Надиктовать (нужен интернет)">' + icon('mic') + ' Надиктовать</button>';
+         ' title="Надиктовать (нужен интернет)" aria-label="Надиктовать">' +
+         icon('mic') + '</button>';
 }
 
 var speechRec = null;
@@ -552,7 +557,9 @@ function startMicInto(field, btn) {
   speechRec.interimResults = true;
   speechRec.continuous = false;
   var base = field.value;
-  btn.innerHTML = icon('mic') + ' Слушаю… (нажми, чтобы остановить)';
+  btn.innerHTML = icon('mic');
+  btn.classList.add('listening');
+  btn.setAttribute('aria-label', 'Слушаю, нажми чтобы остановить');
   speechRec.onresult = function (e) {
     var txt = '';
     for (var i = e.resultIndex; i < e.results.length; i++) txt += e.results[i][0].transcript;
@@ -562,10 +569,12 @@ function startMicInto(field, btn) {
     toast(e.error === 'not-allowed' ? 'Браузер не дал доступ к микрофону' : 'Не получилось распознать');
   };
   speechRec.onend = function () {
-    btn.innerHTML = icon('mic') + ' Надиктовать';
+    btn.innerHTML = icon('mic');
+    btn.classList.remove('listening');
+    btn.setAttribute('aria-label', 'Надиктовать');
     speechRec = null;
   };
-  try { speechRec.start(); } catch (e) { btn.innerHTML = icon('mic') + ' Надиктовать'; }
+  try { speechRec.start(); } catch (e) { btn.classList.remove('listening'); }
 }
 
 /* ---------------- Ящик мыслей ----------------
@@ -599,23 +608,14 @@ function inboxCount() {
 }
 
 function inboxRender() {
-  var host = document.getElementById('inboxList');
-  if (!host) return;
-  var list = inboxGet();
-  if (!list.length) {
-    host.innerHTML = '<p class="muted" style="margin:0">Пока пусто. И это нормально.</p>';
-    inboxCount();
-    return;
+  // Список записок живёт на странице «Дела», в окошке — только ввод:
+  // всплывающая панель со списком закрывала пол-экрана и путала.
+  var go = document.getElementById('inboxGo');
+  if (go) {
+    var n = inboxGet().length;
+    go.hidden = !n;
+    if (n) go.innerHTML = icon('right') + ' Перейти в ящик · ' + n;
   }
-  var html = '<ul class="inbox-items">';
-  for (var i = 0; i < list.length && i < 6; i++) {
-    html += '<li><span>' + esc(list[i].text) + '</span>' +
-      '<button type="button" class="btn sm ghost ico-only" data-inbox-del="' + list[i].id +
-      '" aria-label="Убрать записку">' + icon('close') + '</button></li>';
-  }
-  html += '</ul>';
-  if (list.length > 6) html += '<p class="muted" style="margin:8px 0 0">И ещё ' + (list.length - 6) + '. Весь ящик — на «Рутине».</p>';
-  host.innerHTML = html;
   inboxCount();
 }
 
@@ -670,17 +670,18 @@ function initInbox() {
     '<button type="button" class="inbox-x" data-inbox="close" aria-label="Закрыть ящик">' +
       icon('close') + '</button>' +
     '<h3>Ящик мыслей</h3>' +
-    '<p class="muted">Пришло не вовремя — положи сюда и возвращайся к делу. Разобрать можно в «Разгоне».</p>' +
+    '<p class="muted">Пришло не вовремя — положи сюда и возвращайся к делу. Разобрать можно в «Делах».</p>' +
     '<textarea id="inboxText" rows="3" placeholder="Что всплыло в голове"></textarea>' +
-    micBtnHTML('data-inbox="mic"', 'margin-bottom:10px') +
-    '<div class="btn-row"><button type="button" class="btn sm" data-inbox="save">Убрать в ящик</button></div>' +
-    '<div id="inboxList" style="margin-top:14px"></div>';
+    '<div class="btn-row">' + micBtnHTML('data-inbox="mic"') +
+    '<button type="button" class="btn sm" data-inbox="save">Убрать в ящик</button></div>' +
+    '<a class="btn sm ghost inbox-go" id="inboxGo" hidden href="' +
+    (window.ASSET_BASE || '') + 'routine.html#inboxCard">' + icon('right') + ' Перейти в ящик</a>';
 
   var chip = document.createElement('a');
   chip.id = 'remChip';
   chip.className = 'rem-chip';
   chip.hidden = true;
-  chip.href = (window.ASSET_BASE || '') + 'routine.html';
+  chip.href = (window.ASSET_BASE || '') + 'routine.html#remCard';
 
   document.body.appendChild(chip);
   document.body.appendChild(btn);
@@ -759,13 +760,28 @@ function nextReminder() {
   return best;
 }
 
+/* Чип — такой же кружок, как «Мысль»: будильник и число напоминаний.
+   Текста нет намеренно: это не уведомление, а напоминание о том, что они есть.
+   По клику открывается блок напоминаний в «Делах». */
+function activeReminders() {
+  var list = remGet();
+  var today = todayKey();
+  var n = 0;
+  for (var i = 0; i < list.length; i++) {
+    if (list[i].on && list[i].fired !== today) n++;
+  }
+  return n;
+}
+
 function renderRemChip() {
   var chip = document.getElementById('remChip');
   if (!chip) return;
   var panel = document.getElementById('inboxPanel');
-  var r = nextReminder();
-  if (!r || (panel && !panel.hidden)) { chip.hidden = true; return; }
-  chip.innerHTML = icon('AlarmClock') + '<b>' + esc(r.time) + '</b><span>' + esc(r.text) + '</span>';
+  var n = activeReminders();
+  if (!n || (panel && !panel.hidden)) { chip.hidden = true; return; }
+  chip.innerHTML = icon('AlarmClock') + '<i>Напоминания</i><span class="rem-n">' + n + '</span>';
+  chip.setAttribute('aria-label', 'Напоминаний на сегодня: ' + n + '. Открыть их');
+  chip.title = 'Напоминания: ' + n;
   chip.hidden = false;
 }
 
