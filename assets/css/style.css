@@ -337,7 +337,12 @@ a:hover { text-decoration-color: var(--accent); }
 }
 h1 .i, h2 .i, h3 .i { color: var(--accent); margin-right: .34em; }
 .btn .i { width: 1.1em; height: 1.1em; vertical-align: -.16em; }
-[data-icon] { display: inline-flex; }
+/* Обёртка <span data-icon> — inline-flex, а у него базовая линия идёт по нижнему
+   краю, а не по тексту: из-за этого иконка в заголовках и кнопках висела выше строки.
+   Сдвиг вешаем на саму обёртку, внутри он не работает — flex игнорирует vertical-align. */
+[data-icon] { display: inline-flex; align-items: center; vertical-align: -.19em; }
+[data-icon] .i { vertical-align: 0; }
+.btn [data-icon] { vertical-align: -.16em; }
 
 /* ---------- Карточки ---------- */
 .card {
@@ -1151,6 +1156,44 @@ html.pin-locked body > *:not(#pin-gate):not(#wall) {
 .sos span { font-size: var(--fs-sm); opacity: .85; }
 [data-theme="quiet"] .sos { background: var(--accent); }
 
+/* Точка-сердцебиение перед надписью.
+   Ритм нарочно медленный: два мягких удара и долгая пауза, примерно как спокойный
+   пульс в покое. Если человек завис на этой кнопке в панике, ему есть за что
+   зацепиться дыханием. Ничего не мигает резко и не меняет цвет.
+   В «Тихом режиме» и при prefers-reduced-motion анимации нет совсем. */
+.sos b::before {
+  content: '';
+  display: inline-block;
+  width: .52em;
+  height: .52em;
+  margin-right: .45em;
+  vertical-align: .04em;
+  border-radius: 50%;
+  background: var(--accent-ink);
+  opacity: .9;
+  animation: sos-beat 4.5s ease-in-out infinite;
+}
+.sos { animation: sos-breathe 4.5s ease-in-out infinite; }
+
+@keyframes sos-beat {
+  0%   { transform: scale(1);    opacity: .75; }
+  7%   { transform: scale(1.32); opacity: 1; }
+  15%  { transform: scale(1);    opacity: .85; }
+  23%  { transform: scale(1.2);  opacity: .95; }
+  33%  { transform: scale(1);    opacity: .75; }
+  100% { transform: scale(1);    opacity: .75; }
+}
+@keyframes sos-breathe {
+  0%, 100% { box-shadow: var(--shadow-lift); }
+  18%      { box-shadow: var(--shadow-lift), 0 0 0 7px color-mix(in srgb, var(--accent) 20%, transparent); }
+  45%      { box-shadow: var(--shadow-lift); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sos, .sos b::before { animation: none; }
+}
+[data-theme="quiet"] .sos,
+[data-theme="quiet"] .sos b::before { animation: none; }
+
 /* Карточка упражнения в списке */
 .ex-list { display: grid; gap: 10px; }
 .ex-row {
@@ -1663,3 +1706,89 @@ html.pin-locked body > *:not(#pin-gate):not(#wall) {
    а автоподбор колонок ставил три в ряд и одну сиротой на второй строке. */
 .grid.g2 { grid-template-columns: 1fr; }
 @media (min-width: 700px) { .grid.g2 { grid-template-columns: repeat(2, 1fr); } }
+
+/* ---------- Крестик в ящике мыслей ---------- */
+.inbox-x {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--text-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background var(--speed), color var(--speed);
+}
+.inbox-x:hover { background: var(--card-soft); color: var(--text); }
+.inbox-panel h3 { padding-right: 38px; }
+
+/* ---------- Ближайшее напоминание над кнопкой «Мысль» ---------- */
+.rem-chip {
+  position: fixed;
+  right: 18px;
+  bottom: 82px;
+  z-index: 44;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: min(300px, calc(100vw - 36px));
+  padding: 9px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--text);
+  font-size: var(--fs-sm);
+  text-decoration: none;
+  box-shadow: var(--shadow);
+}
+.rem-chip:hover { border-color: var(--accent); }
+.rem-chip .i { color: var(--accent); }
+.rem-chip b { font-family: var(--font-head); }
+.rem-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+@media (max-width: 680px) {
+  .rem-chip { right: 14px; bottom: calc(146px + env(safe-area-inset-bottom)); }
+}
+@media print { .rem-chip { display: none !important; } }
+
+/* ---------- Подменю раздела ----------
+   Внутренние входы раздела живут отдельной строкой под общим меню: так верхнее
+   меню одинаковое на всех страницах, а свои вкладки у раздела всё равно есть. */
+.subnav {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 16px 20px 0;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.subnav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 9px 16px;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--text-soft);
+  text-decoration: none;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  transition: border-color var(--speed), background var(--speed), color var(--speed);
+}
+.subnav a:hover { border-color: var(--accent); color: var(--text); }
+.subnav a[aria-current="page"] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+.subnav .i { color: currentColor; }
+@media (max-width: 980px) { .subnav { max-width: 100%; } }
+@media (max-width: 680px) { .subnav { padding: 12px 16px 0; } }
+@media print { .subnav { display: none !important; } }

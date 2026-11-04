@@ -494,6 +494,8 @@ function renderReminders() {
     host.innerHTML = html;
   }
 
+  renderRemChip();   // чип над кнопкой «Мысль» показывает ближайшее напоминание
+
   var state = document.getElementById('remState');
   var can = ('Notification' in window);
   var perm = can ? Notification.permission : 'unsupported';

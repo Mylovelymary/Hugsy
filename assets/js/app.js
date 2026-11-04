@@ -626,11 +626,15 @@ function inboxToggle(open) {
   var show = (open == null) ? panel.hidden : open;
   panel.hidden = !show;
   btn.setAttribute('aria-expanded', show ? 'true' : 'false');
+  // Пока панель открыта, напоминание не висит у неё на пути
+  var chip = document.getElementById('remChip');
+  if (chip && show) chip.hidden = true;
   if (show) {
     inboxRender();
     document.getElementById('inboxText').focus();
   } else {
     btn.focus();
+    renderRemChip();
   }
 }
 
@@ -663,17 +667,26 @@ function initInbox() {
   panel.setAttribute('role', 'dialog');
   panel.setAttribute('aria-label', 'Ящик мыслей');
   panel.innerHTML =
+    '<button type="button" class="inbox-x" data-inbox="close" aria-label="Закрыть ящик">' +
+      icon('close') + '</button>' +
     '<h3>Ящик мыслей</h3>' +
     '<p class="muted">Пришло не вовремя — положи сюда и возвращайся к делу. Разобрать можно в «Разгоне».</p>' +
     '<textarea id="inboxText" rows="3" placeholder="Что всплыло в голове"></textarea>' +
     micBtnHTML('data-inbox="mic"', 'margin-bottom:10px') +
-    '<div class="btn-row"><button type="button" class="btn sm" data-inbox="save">Убрать в ящик</button>' +
-    '<button type="button" class="btn sm ghost" data-inbox="close">Закрыть</button></div>' +
+    '<div class="btn-row"><button type="button" class="btn sm" data-inbox="save">Убрать в ящик</button></div>' +
     '<div id="inboxList" style="margin-top:14px"></div>';
 
+  var chip = document.createElement('a');
+  chip.id = 'remChip';
+  chip.className = 'rem-chip';
+  chip.hidden = true;
+  chip.href = (window.ASSET_BASE || '') + 'routine.html';
+
+  document.body.appendChild(chip);
   document.body.appendChild(btn);
   document.body.appendChild(panel);
   inboxCount();
+  renderRemChip();
 
   btn.addEventListener('click', function () { inboxToggle(); });
 
@@ -728,9 +741,37 @@ function softNotify(msg) {
   } catch (e) {}
 }
 
+/* Ближайшее напоминание на сегодня висит над кнопкой «Мысль».
+   Это не уведомление и не укор: просто видно, что ты сам себе поставил. */
+function nextReminder() {
+  var list = remGet();
+  var d = new Date();
+  var nowMin = d.getHours() * 60 + d.getMinutes();
+  var today = todayKey();
+  var best = null;
+  for (var i = 0; i < list.length; i++) {
+    var r = list[i];
+    if (!r.on || r.fired === today) continue;
+    var due = minutesOf(r.time);
+    if (due < nowMin) continue;
+    if (!best || due < minutesOf(best.time)) best = r;
+  }
+  return best;
+}
+
+function renderRemChip() {
+  var chip = document.getElementById('remChip');
+  if (!chip) return;
+  var panel = document.getElementById('inboxPanel');
+  var r = nextReminder();
+  if (!r || (panel && !panel.hidden)) { chip.hidden = true; return; }
+  chip.innerHTML = icon('AlarmClock') + '<b>' + esc(r.time) + '</b><span>' + esc(r.text) + '</span>';
+  chip.hidden = false;
+}
+
 function remTick() {
   var list = remGet();
-  if (!list.length) return;
+  if (!list.length) { renderRemChip(); return; }
   var d = new Date();
   var nowMin = d.getHours() * 60 + d.getMinutes();
   var today = todayKey();
@@ -747,6 +788,7 @@ function remTick() {
     if (nowMin - due <= REM_WINDOW_MIN) softNotify(r.text || 'Твоё напоминание');
   }
   if (changed) remSave(list);
+  renderRemChip();
 }
 
 function initReminders() {
