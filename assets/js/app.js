@@ -849,11 +849,23 @@ document.addEventListener('DOMContentLoaded', function () {
   initInbox();
   initReminders();
   initTimeFields();
-  // Service Worker нужен только на боевом сайте. На localhost он отдавал бы
-  // старые CSS и JS из кеша и мешал разработке, поэтому там его сносим.
+  /* ---- Офлайн-кеш ----
+     Выключен 2026-11-04, пока сайт активно правится: он застревал у людей
+     на телефонах, и человек несколько заходов подряд видел прошлую версию.
+     Чтобы вернуть офлайн перед запуском — поставить здесь true и скопировать
+     `tools/sw-offline.js` поверх `sw.js` (см. роадмап, «Перед публичным запуском»). */
+  var OFFLINE_CACHE = false;
+
   var local = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
   if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
-    if (local) {
+    if (OFFLINE_CACHE && !local) {
+      // updateViaCache: 'none' — браузеру запрещено брать сам sw.js из своего HTTP-кеша,
+      // иначе он может сутки не замечать, что вышла новая версия сайта
+      navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
+    } else {
+      // Сносим всё, что осталось от прошлых версий: и регистрацию, и кеши.
+      // На боевом домене этим же занимается сам sw.js — он теперь самоудаляющийся,
+      // потому что страница может грузиться из старого кеша и до этого кода не дойти.
       navigator.serviceWorker.getRegistrations().then(function (rs) {
         for (var i = 0; i < rs.length; i++) rs[i].unregister();
       }).catch(function () {});
@@ -862,10 +874,6 @@ document.addEventListener('DOMContentLoaded', function () {
           for (var j = 0; j < ks.length; j++) caches.delete(ks[j]);
         }).catch(function () {});
       }
-    } else {
-      // updateViaCache: 'none' — браузеру запрещено брать сам sw.js из своего HTTP-кеша,
-      // иначе он может сутки не замечать, что вышла новая версия сайта
-      navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
     }
   }
 });
