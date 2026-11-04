@@ -1,20 +1,69 @@
-/* Рутина дня: чеклист, дробление задач, таймер фокуса.
-   Тон: никогда не укоряем за пропуски. Серия не обнуляется. */
+/* Рутина дня: чеклист, дробление задач, таймер фокуса, инструменты под СДВГ.
+   Тон: никогда не укоряем за пропуски. Серия не обнуляется.
+
+   Блоки под СДВГ (очередь 3 роадмапа): силы на сегодня, лесенка запуска,
+   круг таймера, полоса дня, оценка времени против факта, напоминания,
+   разбор ящика мыслей. Сам ящик общий и живёт в app.js. */
 
 var routine = { date: '', tasks: [] };
 var tcfg = { focus: 20, brk: 5 };
 var timer = { left: 0, run: false, mode: 'focus', iv: null };
 
-var NUDGES = [
-  'Поставь таймер на 2 минуты и делай. Через 2 минуты можно честно бросить.',
-  'Сделай только первый физический шаг: открой файл, достань вещь, открой дверь.',
-  'Скажи вслух, что именно ты собираешься сделать. Одно предложение.',
-  'Налей воды и вернись. Иногда запуск тормозит просто из-за тела.',
-  'Разреши себе сделать это плохо. Плохо сделанное можно поправить, несделанное — нет.',
-  'Убери с глаз всё, кроме одной задачи. Выбор отнимает больше сил, чем работа.',
-  'Начни с середины, если начало тяжёлое. Порядок не обязателен.',
-  'Поставь задачу на 1 минуту меньше, чем кажется возможным, и останови себя по звонку.'
+/* Силы на сегодня. Не оценка человека, а честный ответ на вопрос «что сейчас есть».
+   На «мало» список сам сжимается до трёх пунктов: выбор тоже отнимает силы. */
+var ENERGY = [
+  { id: 'low',  label: 'Сил мало',     note: 'Понял. Оставил три пункта, остальное подождёт и не испортится.' },
+  { id: 'mid',  label: 'Обычный день', note: 'Обычный день. Список целиком, начинать можно с любого места.' },
+  { id: 'high', label: 'Много сил',    note: 'Есть запал. Хороший момент для того, что давно висит.' }
 ];
+var LOW_LIMIT = 3;
+var energy = { date: '', level: 'mid' };
+var showAllTasks = false;
+
+/* Лесенка запуска: три ступени от тела к делу. Смысл не в том, чтобы заставить
+   «начать работать», а в том, чтобы спуститься до шага, от которого глупо отказаться.
+   Ступень не сработала — это не провал, а просто не та ступень. */
+var LADDER = [
+  {
+    name: 'Шаг телом',
+    hint: 'Ничего умственного, только движение: мозгу проще догнать тело, чем наоборот.',
+    items: [
+      'Встань и налей себе воды. Потом вернись сюда.',
+      'Открой то, в чём надо работать, и просто смотри. Делать пока не нужно.',
+      'Положи на стол одну вещь, которая нужна для дела. Одну.',
+      'Дойди до другой комнаты и обратно.',
+      'Сядь ровно и сделай три медленных выдоха.'
+    ]
+  },
+  {
+    name: 'Две минуты',
+    hint: 'Ставим таймер на две минуты. Через две минуты можно честно всё бросить.',
+    items: [
+      'Две минуты делай самое начало. Звонок — и можно уходить.',
+      'Две минуты на самый противный кусок. Дальше по желанию.',
+      'Две минуты просто перебирай то, что лежит перед тобой.',
+      'Две минуты вслух проговаривай, что видишь и что собираешься сделать.'
+    ]
+  },
+  {
+    name: 'Сделай плохо',
+    hint: 'Планка — главный тормоз. Разрешаем себе черновик, который стыдно показывать.',
+    items: [
+      'Сделай нарочно плохо. Плохое можно поправить, несделанное — нет.',
+      'Напиши самый кривой вариант. Он не финальный, он просто первый.',
+      'Начни с середины. Красивое начало придумаешь, когда будет что начинать.',
+      'Сделай четверть и оставь. Четверть — это не ноль.'
+    ]
+  }
+];
+var ladder = { step: 0, pick: [0, 0, 0] };
+
+var DAY_FROM = 6;   // полоса дня идёт с 6 утра до полуночи
+var DAY_TO = 24;
+var dayIv = null;
+
+var EST_PRESETS = [5, 15, 30, 60];
+var askFactFor = '';   // id задачи, у которой сейчас спрашиваем факт
 
 /* ---------- Данные ---------- */
 function rLoad() {
@@ -24,6 +73,7 @@ function rLoad() {
     // Новый день: задачи оставляем, галочки снимаем. Без упрёков.
     for (var i = 0; i < routine.tasks.length; i++) {
       routine.tasks[i].done = false;
+      routine.tasks[i].fact = 0;
       var st = routine.tasks[i].steps || [];
       for (var j = 0; j < st.length; j++) st[j].done = false;
     }
@@ -32,8 +82,12 @@ function rLoad() {
     document.getElementById('dayNote').textContent =
       'Новый день — галочки сняты, задачи остались. Начать можно с любой.';
   }
+
+  energy = Store.get('energy', null) || { date: '', level: 'mid' };
+  if (energy.date !== todayKey()) energy = { date: todayKey(), level: 'mid' };
 }
 function rSave() { Store.set('routine', routine); }
+function eSave() { energy.date = todayKey(); Store.set('energy', energy); }
 
 function markVisit() {
   var s = Store.get('streak', { last: '', n: 0, days: 0 });
@@ -52,49 +106,107 @@ function markVisit() {
     '<p class="muted" style="margin:12px 0 0">' + esc(txt) + '</p>';
 }
 
+/* ---------- Силы на сегодня ---------- */
+function renderEnergy() {
+  var html = '';
+  for (var i = 0; i < ENERGY.length; i++) {
+    html += '<button type="button" data-energy="' + ENERGY[i].id + '" aria-pressed="' +
+      (energy.level === ENERGY[i].id) + '">' + esc(ENERGY[i].label) + '</button>';
+  }
+  document.getElementById('energy').innerHTML = html;
+  var cur = ENERGY.filter(function (x) { return x.id === energy.level; })[0] || ENERGY[1];
+  document.getElementById('energyNote').textContent = cur.note;
+}
+
 /* ---------- Задачи ---------- */
+function taskHTML(t) {
+  var html = '<div class="task' + (t.done ? ' done' : '') + '">' +
+    '<input type="checkbox" data-done="' + t.id + '"' + (t.done ? ' checked' : '') +
+    ' aria-label="Выполнено: ' + esc(t.title) + '">' +
+    '<div class="body"><div class="ttl">' + esc(t.title) + '</div>';
+
+  var meta = [];
+  if (t.time) meta.push(icon('clock') + ' ' + esc(t.time));
+  if (t.est) meta.push(icon('Hourglass') + ' ' + t.est + ' мин на глаз');
+  if (t.fact) meta.push(icon('check') + ' вышло ' + t.fact + ' мин');
+  if (meta.length) html += '<div class="meta">' + meta.join(' · ') + '</div>';
+
+  if (t.steps && t.steps.length) {
+    html += '<ul class="steps">';
+    for (var j = 0; j < t.steps.length; j++) {
+      html += '<li><label style="cursor:pointer"><input type="checkbox" style="width:16px;height:16px;margin-right:6px"' +
+        ' data-sub="' + t.id + ':' + j + '"' + (t.steps[j].done ? ' checked' : '') + '>' +
+        (t.steps[j].done ? '<s>' + esc(t.steps[j].text) + '</s>' : esc(t.steps[j].text)) + '</label></li>';
+    }
+    html += '</ul>';
+  }
+
+  if (askFactFor === t.id) html += factFormHTML(t);
+
+  html += '</div><div style="white-space:nowrap">' +
+    '<button class="btn sm ghost ico-only" data-split="' + t.id + '" title="Разбить на шаги" ' +
+    'aria-label="Разбить на шаги">' + icon('steps') + '</button> ' +
+    '<button class="btn sm ghost ico-only" data-rm="' + t.id + '" aria-label="Удалить задачу">' +
+    icon('close') + '</button></div></div>';
+  return html;
+}
+
 function renderTasks() {
   var host = document.getElementById('tasks');
   if (!routine.tasks.length) {
     host.innerHTML = '<div class="empty">' + mascotHTML('goose', 96, '') +
       '<p>На сегодня пусто. Добавь одну задачу — не самую важную, а самую маленькую.</p></div>';
+    renderDayBar();
     return;
   }
-  var html = '';
-  for (var i = 0; i < routine.tasks.length; i++) {
-    var t = routine.tasks[i];
-    html += '<div class="task' + (t.done ? ' done' : '') + '">' +
-      '<input type="checkbox" data-done="' + t.id + '"' + (t.done ? ' checked' : '') +
-      ' aria-label="Выполнено: ' + esc(t.title) + '">' +
-      '<div class="body"><div class="ttl">' + esc(t.title) + '</div>' +
-      (t.time ? '<div class="meta">' + icon('clock') + ' ' + esc(t.time) + '</div>' : '');
-    if (t.steps && t.steps.length) {
-      html += '<ul class="steps">';
-      for (var j = 0; j < t.steps.length; j++) {
-        html += '<li><label style="cursor:pointer"><input type="checkbox" style="width:16px;height:16px;margin-right:6px"' +
-          ' data-step="' + t.id + ':' + j + '"' + (t.steps[j].done ? ' checked' : '') + '>' +
-          (t.steps[j].done ? '<s>' + esc(t.steps[j].text) + '</s>' : esc(t.steps[j].text)) + '</label></li>';
-      }
-      html += '</ul>';
+
+  // В день, когда сил мало, показываем три пункта: длинный список сам по себе
+  // забирает силы. Спрятать — не то же самое, что отменить: остальное на месте.
+  var list = routine.tasks;
+  var hidden = 0;
+  if (energy.level === 'low' && !showAllTasks) {
+    var head = [];
+    for (var i = 0; i < routine.tasks.length; i++) {
+      var t0 = routine.tasks[i];
+      if (head.length < LOW_LIMIT || t0.done || askFactFor === t0.id) head.push(t0);
     }
-    html += '</div><div style="white-space:nowrap">' +
-      '<button class="btn sm ghost ico-only" data-split="' + t.id + '" title="Разбить на шаги" ' +
-      'aria-label="Разбить на шаги">' + icon('steps') + '</button> ' +
-      '<button class="btn sm ghost ico-only" data-rm="' + t.id + '" aria-label="Удалить задачу">' +
-      icon('close') + '</button></div></div>';
+    hidden = routine.tasks.length - head.length;
+    list = head;
   }
+
+  var html = '';
+  for (var k = 0; k < list.length; k++) html += taskHTML(list[k]);
+
+  if (hidden > 0) {
+    html += '<button class="btn sm ghost" data-act="showall" style="margin-top:10px">' +
+      'Показать остальные (' + hidden + ')</button>' +
+      '<p class="muted" style="margin-top:8px">Сегодня хватит и одного пункта из трёх.</p>';
+  } else if (energy.level === 'low' && showAllTasks) {
+    html += '<button class="btn sm ghost" data-act="showless" style="margin-top:10px">Снова оставить три</button>';
+  }
+
   var doneN = routine.tasks.filter(function (x) { return x.done; }).length;
   html += '<p class="muted">Сделано: ' + doneN + ' из ' + routine.tasks.length + '.' +
     (doneN ? ' Этого уже достаточно, чтобы день считался не зря.' : '') + '</p>';
   host.innerHTML = html;
+  renderDayBar();
 }
 
 function renderTaskForm() {
+  var chips = '';
+  for (var i = 0; i < EST_PRESETS.length; i++) {
+    chips += '<button type="button" data-est="' + EST_PRESETS[i] + '">' + EST_PRESETS[i] + ' мин</button>';
+  }
   document.getElementById('taskForm').innerHTML =
     '<div class="card soft" style="margin-top:14px" id="tf">' +
     '<label class="f"><span>Что нужно сделать</span><input type="text" id="tTitle" placeholder="Например: разобрать один ящик"></label>' +
     '<label class="f"><span>Во сколько (необязательно)</span><input type="time" id="tTime"></label>' +
-    '<div class="btn-row"><button class="btn" data-act="savetask">Добавить</button>' +
+    '<div class="esti"><span>Сколько, кажется, это займёт? Необязательно — но из таких догадок ' +
+    'собирается твой личный коэффициент времени.</span>' +
+    '<div class="chips" id="estChips">' + chips +
+    '<button type="button" data-est="0" aria-pressed="true">Не знаю</button></div>' +
+    '<p class="muted" id="estHint" style="margin:8px 0 0"></p></div>' +
+    '<div class="btn-row" style="margin-top:14px"><button class="btn" data-act="savetask">Добавить</button>' +
     '<button class="btn ghost" data-act="canceltask">Отмена</button></div></div>';
   document.getElementById('tTitle').focus();
 }
@@ -104,18 +216,161 @@ function findTask(id) {
   return null;
 }
 
+/* ---------- Оценка времени против факта ----------
+   Недооценка времени при СДВГ — не черта характера, а измеримая величина.
+   Если её знать, её можно просто закладывать в план. Поэтому здесь нет
+   ни одного «ты опять не уложился» — только число. */
+function biasData() {
+  var log = Store.get('time.log', []);
+  var se = 0, sf = 0;
+  for (var i = 0; i < log.length; i++) { se += log[i].est; sf += log[i].fact; }
+  return { n: log.length, coef: se ? sf / se : 0 };
+}
+
+function biasApply(minutes) {
+  var b = biasData();
+  if (b.n < 3 || !minutes) return 0;
+  return Math.max(5, Math.round(minutes * b.coef / 5) * 5);
+}
+
+function renderBias() {
+  var b = biasData();
+  var host = document.getElementById('bias');
+  if (b.n < 3) {
+    host.innerHTML = '<p class="muted" style="margin:0">Отмечено оценок: ' + b.n +
+      ' из 3. После третьей здесь появится твой коэффициент — во сколько раз дела ' +
+      'обычно длиннее, чем кажутся.</p>';
+    return;
+  }
+  var c = b.coef;
+  var word = c >= 1.15
+    ? 'Значит, при планировании смело умножай. Это не про «плохо старался» — это твой масштаб времени, и его можно просто учитывать.'
+    : (c <= 0.9
+      ? 'Ты закладываешь время с запасом. Можно спокойнее относиться к своим оценкам.'
+      : 'Твои оценки близки к правде. Редкое умение, если честно.');
+  // Запятая, а не точка: это русский интерфейс
+  host.innerHTML = '<div class="bias"><b>&times;' + c.toFixed(1).replace('.', ',') + '</b>' +
+    '<span>во столько раз дела обычно длиннее, чем кажется. По ' + b.n + ' отметкам.</span></div>' +
+    '<p class="muted" style="margin:8px 0 0">' + esc(word) + '</p>';
+}
+
+function factFormHTML(t) {
+  var base = t.est || 15;
+  var opts = [base, Math.round(base * 1.5), base * 2, base * 3];
+  var chips = '';
+  for (var i = 0; i < opts.length; i++) {
+    chips += '<button type="button" data-fact="' + t.id + ':' + opts[i] + '">' + opts[i] + ' мин</button>';
+  }
+  return '<div class="esti"><span>Сделано. А сколько ушло на самом деле? ' +
+    'Это нужно только для твоего коэффициента — оценивать тебя никто не будет.</span>' +
+    '<div class="chips">' + chips +
+    '<button type="button" data-fact="' + t.id + ':skip">Пропустить</button></div></div>';
+}
+
+function logFact(t, fact) {
+  if (!t.est || !fact) return;
+  var log = Store.get('time.log', []);
+  log.push({ est: t.est, fact: fact, ts: todayKey() });
+  if (log.length > 40) log = log.slice(log.length - 40);
+  Store.set('time.log', log);
+  t.fact = fact;
+  rSave();
+  renderBias();
+}
+
+/* ---------- Полоса дня ----------
+   При СДВГ время плохо ощущается изнутри. Полоса показывает его снаружи:
+   сколько дня прошло, сколько осталось и куда попадают задачи со временем.
+   Прошедшая часть просто серая — никакого «ты потерял полдня». */
+function renderDayBar() {
+  var host = document.getElementById('daybar');
+  if (!host) return;
+  var d = new Date();
+  var nowH = d.getHours() + d.getMinutes() / 60;
+  var span = DAY_TO - DAY_FROM;
+  var pos = function (h) { return Math.max(0, Math.min(100, (h - DAY_FROM) / span * 100)); };
+
+  var html = '<div class="past" style="width:' + pos(nowH).toFixed(1) + '%"></div>';
+  for (var h = DAY_FROM + 3; h < DAY_TO; h += 3) {
+    html += '<div class="hour" style="left:' + pos(h).toFixed(1) + '%">' + h + ':00</div>';
+  }
+
+  var placed = 0;
+  for (var i = 0; i < routine.tasks.length; i++) {
+    var t = routine.tasks[i];
+    if (!t.time) continue;
+    var p = t.time.split(':');
+    var th = parseInt(p[0], 10) + parseInt(p[1], 10) / 60;
+    if (th < DAY_FROM || th > DAY_TO) continue;
+    placed++;
+    html += '<div class="slot' + (t.done ? ' done' : '') + '" style="left:' + pos(th).toFixed(1) + '%">' +
+      '<span>' + esc(t.title) + '</span><b></b></div>';
+  }
+
+  if (nowH >= DAY_FROM && nowH <= DAY_TO) {
+    var np = pos(nowH);
+    html += '<div class="now' + (np > 82 ? ' end' : '') + '" style="left:' + np.toFixed(1) + '%"></div>';
+  }
+  host.innerHTML = html;
+
+  var left = Math.max(0, Math.round(DAY_TO - nowH));
+  var note;
+  if (nowH < DAY_FROM || nowH >= DAY_TO) {
+    note = 'Сейчас время не для дел. Полоса начнётся заново утром.';
+  } else {
+    note = 'До полуночи примерно ' + left + ' ' + plural(left, 'час', 'часа', 'часов') + '.' +
+      (placed ? '' : ' Поставь задаче время — она появится на полосе.');
+  }
+  document.getElementById('daybarNote').textContent = note;
+}
+
+/* ---------- Лесенка запуска ---------- */
+function ladderPickAll() {
+  for (var i = 0; i < LADDER.length; i++) {
+    ladder.pick[i] = Math.floor(Math.random() * LADDER[i].items.length);
+  }
+}
+
+function renderLadder() {
+  var html = '';
+  for (var i = 0; i < LADDER.length; i++) {
+    var st = LADDER[i];
+    var cls = i === ladder.step ? ' on' : (i < ladder.step ? ' past' : '');
+    html += '<div class="rung' + cls + '"><span class="num">' + (i + 1) + '</span>' +
+      '<div class="rtxt"><span class="rname">' + esc(st.name) + '</span>' +
+      (i === ladder.step
+        ? '<div class="rtask">' + esc(st.items[ladder.pick[i]]) + '</div>'
+        : '<span>' + esc(st.hint) + '</span>') +
+      '</div></div>';
+  }
+  document.getElementById('ladder').innerHTML = html;
+
+  var btns = '<button class="btn sm" data-act="rung-ok">Получилось</button>' +
+    '<button class="btn sm ghost" data-act="rung-other">Другой вариант</button>';
+  if (ladder.step === 1) {
+    btns += '<button class="btn sm ghost" data-act="rung-timer">Поставить 2 минуты</button>';
+  }
+  btns += ladder.step < LADDER.length - 1
+    ? '<button class="btn sm ghost" data-act="rung-next">Не пошло, ступень ниже</button>'
+    : '<button class="btn sm ghost" data-act="rung-stop">Сегодня не идёт</button>';
+  document.getElementById('ladderBtns').innerHTML = btns;
+}
+
 /* ---------- Таймер ---------- */
 function fmtClock(sec) {
   return pad2(Math.floor(sec / 60)) + ':' + pad2(sec % 60);
 }
 var FOCUS_PRESETS = [7, 15, 20, 25, 45];
 var BRK_PRESETS = [3, 5, 10];
+var RING_LEN = 339.292;   // длина окружности радиуса 54
 
 /* Кнопки «−» и «+» и готовые значения вместо поля со стрелочками:
    по ним реально попасть пальцем, и не надо ничего печатать. */
 function renderTimerControls() {
   document.getElementById('focusVal').textContent = tcfg.focus;
   document.getElementById('brkVal').textContent = tcfg.brk;
+  document.getElementById('focusUnit').textContent = plural(tcfg.focus, 'минута', 'минуты', 'минут');
+  document.getElementById('brkUnit').textContent = plural(tcfg.brk, 'минута', 'минуты', 'минут');
 
   var fh = '';
   for (var i = 0; i < FOCUS_PRESETS.length; i++) {
@@ -134,13 +389,13 @@ function renderTimerControls() {
   var btns = document.querySelectorAll('.sbtn');
   for (var k = 0; k < btns.length; k++) {
     if (!btns[k].firstChild) {
-      btns[k].innerHTML = icon(btns[k].dataset.step.indexOf('-') > 0 ? 'minus' : 'plus');
+      btns[k].innerHTML = icon(btns[k].dataset.tstep.indexOf('-') > 0 ? 'minus' : 'plus');
     }
   }
-  document.querySelector('[data-step="focus:-5"]').disabled = tcfg.focus <= 1;
-  document.querySelector('[data-step="focus:5"]').disabled = tcfg.focus >= 90;
-  document.querySelector('[data-step="brk:-1"]').disabled = tcfg.brk <= 1;
-  document.querySelector('[data-step="brk:1"]').disabled = tcfg.brk >= 30;
+  document.querySelector('[data-tstep="focus:-5"]').disabled = tcfg.focus <= 1;
+  document.querySelector('[data-tstep="focus:5"]').disabled = tcfg.focus >= 90;
+  document.querySelector('[data-tstep="brk:-1"]').disabled = tcfg.brk <= 1;
+  document.querySelector('[data-tstep="brk:1"]').disabled = tcfg.brk >= 30;
 }
 
 function setTimerCfg(key, value) {
@@ -151,10 +406,22 @@ function setTimerCfg(key, value) {
   if (!timer.run) tReset(timer.mode);
 }
 
-function tRender() {
+/* Круг вместо голых цифр: так видно, сколько времени осталось, а не только
+   сколько натикало. Цифры никуда не делись — круг их дополняет.
+   В «Тихом режиме» и при prefers-reduced-motion кольцо движется без плавности. */
+function tClock() {
   document.getElementById('clock').textContent = fmtClock(timer.left);
+  var total = (timer.mode === 'focus' ? tcfg.focus : tcfg.brk) * 60;
+  var left = Math.max(0, Math.min(1, total ? timer.left / total : 0));
+  var ring = document.getElementById('ringFg');
+  if (ring) ring.setAttribute('stroke-dashoffset', (RING_LEN * (1 - left)).toFixed(1));
+}
+
+function tRender() {
+  tClock();
   document.getElementById('tstart').innerHTML =
     timer.run ? icon('pause') + ' Пауза' : icon('play') + ' Начать';
+  document.getElementById('ringMode').textContent = timer.mode === 'focus' ? 'фокус' : 'перерыв';
   document.getElementById('tstate').textContent = timer.mode === 'focus'
     ? 'Фокус. Делай одно дело, остальное потом.'
     : 'Перерыв. Встань, разомнись, попей воды.';
@@ -184,38 +451,122 @@ function tToggle() {
       timer.iv = null;
       timer.run = false;
       var wasFocus = timer.mode === 'focus';
-      notify(wasFocus ? 'Отрезок фокуса закончен. Пингвин доволен 🐧' : 'Перерыв закончен. Можно ещё один отрезок.');
+      softNotify(wasFocus ? 'Отрезок фокуса закончен. Пингвин доволен 🐧'
+                          : 'Перерыв закончен. Можно ещё один отрезок.');
       tReset(wasFocus ? 'break' : 'focus');
       return;
     }
-    document.getElementById('clock').textContent = fmtClock(timer.left);
+    tClock();
   }, 1000);
 }
-function notify(msg) {
-  toast(msg);
+
+function askNotifyPermission() {
   try {
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification('Hugsy', { body: msg });
+    if ('Notification' in window && Notification.permission === 'default') {
+      var r = Notification.requestPermission();
+      if (r && r.then) r.then(renderReminders).catch(function () {});
     }
   } catch (e) {}
+}
+
+/* ---------- Напоминания ----------
+   Только свои: текст пишет человек, время ставит человек, выключается в одно касание.
+   Никаких «ты давно не заходил» — это прямой запрет из CLAUDE.md. */
+function renderReminders() {
+  var list = remGet();
+  var host = document.getElementById('remList');
+  if (!list.length) {
+    host.innerHTML = '<p class="muted" style="margin:10px 0 0">Пока ни одного. Сами мы ничего ' +
+      'не придумаем и дёргать не станем — придёт только то, что поставишь здесь.</p>';
+  } else {
+    var html = '<ul class="rem-list">';
+    for (var i = 0; i < list.length; i++) {
+      var r = list[i];
+      html += '<li class="' + (r.on ? '' : 'off') + '"><span class="rt">' + esc(r.time) + '</span>' +
+        '<span class="rx">' + esc(r.text) + '</span>' +
+        '<button class="btn sm ghost" data-rem-on="' + r.id + '" aria-pressed="' + !!r.on + '">' +
+        (r.on ? 'Включено' : 'Выключено') + '</button>' +
+        '<button class="btn sm ghost ico-only" data-rem-del="' + r.id +
+        '" aria-label="Удалить напоминание">' + icon('close') + '</button></li>';
+    }
+    html += '</ul>';
+    host.innerHTML = html;
+  }
+
+  var state = document.getElementById('remState');
+  var can = ('Notification' in window);
+  var perm = can ? Notification.permission : 'unsupported';
+  if (perm === 'granted') {
+    state.innerHTML = 'Уведомления разрешены. Они приходят, пока вкладка с Хагси открыта: ' +
+      'своего сервера у нас нет, и обещать больше было бы нечестно.';
+  } else if (!can || perm === 'denied') {
+    state.innerHTML = 'Браузер уведомления не пропускает — ничего страшного. Напоминание ' +
+      'всё равно всплывёт подсказкой на странице, пока Хагси открыт.';
+  } else {
+    state.innerHTML = 'Чтобы напоминание было видно за пределами вкладки, нужно разрешение браузера. ' +
+      '<button class="btn sm ghost" data-act="remperm" style="margin-left:6px">Разрешить уведомления</button>';
+  }
+}
+
+function addReminder() {
+  var time = document.getElementById('remTime').value;
+  var text = document.getElementById('remText').value.trim();
+  if (!time) { toast('Поставь время'); return; }
+  var list = remGet();
+  list.push({ id: uid(), time: time, text: text || 'Напоминание, которое ты себе поставил', on: true, fired: '' });
+  list.sort(function (a, b) { return minutesOf(a.time) - minutesOf(b.time); });
+  remSave(list);
+  document.getElementById('remText').value = '';
+  renderReminders();
+  toast('Поставлено. Напомню мягко');
+  askNotifyPermission();
+}
+
+/* ---------- Разбор ящика мыслей ----------
+   Сам ящик в app.js и есть на каждой странице. Здесь он разбирается:
+   мысль становится задачей или уходит. Не разобрать — тоже нормально. */
+function renderInboxCard() {
+  var host = document.getElementById('inboxCard');
+  if (!host) return;
+  var list = inboxGet();
+  if (!list.length) {
+    host.innerHTML = '<p class="muted" style="margin:0">Ящик пуст. Кнопка «Мысль» есть в углу ' +
+      'любой страницы — бросай туда всё, что лезет в голову не вовремя.</p>';
+    return;
+  }
+  var html = '<ul class="rem-list">';
+  for (var i = 0; i < list.length; i++) {
+    html += '<li><span class="rx">' + esc(list[i].text) + '</span>' +
+      '<button class="btn sm ghost" data-ibx-task="' + list[i].id + '">В задачу</button>' +
+      '<button class="btn sm ghost ico-only" data-ibx-del="' + list[i].id +
+      '" aria-label="Убрать записку">' + icon('close') + '</button></li>';
+  }
+  html += '</ul>';
+  host.innerHTML = html;
 }
 
 /* ---------- Старт ---------- */
 function rInit() {
   rLoad();
+  renderEnergy();
   renderTasks();
+  renderBias();
+  renderReminders();
+  renderInboxCard();
   markVisit();
-  mountIcons();
 
   renderTimerControls();
   tReset('focus');
-  newNudge();
+  ladderPickAll();
+  renderLadder();
+  mountIcons();
+
+  // Полоса дня живёт по часам: без обновления метка «сейчас» начинает врать
+  dayIv = setInterval(renderDayBar, 60000);
 
   document.getElementById('tstart').addEventListener('click', function () {
-    // Разрешение на уведомления спрашиваем только по явному действию пользователя
-    try {
-      if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
-    } catch (e) {}
+    // Разрешение на уведомления спрашиваем только по явному действию человека
+    askNotifyPermission();
     tToggle();
   });
 
@@ -225,6 +576,8 @@ function rInit() {
       var t = findTask(el.dataset.done);
       if (t) {
         t.done = el.checked;
+        if (el.checked && t.est && !t.fact) askFactFor = t.id;
+        if (!el.checked && askFactFor === t.id) askFactFor = '';
         rSave();
         renderTasks();
         if (el.checked) {
@@ -235,8 +588,8 @@ function rInit() {
       }
       return;
     }
-    if (el.dataset.step) {
-      var parts = el.dataset.step.split(':');
+    if (el.dataset.sub) {
+      var parts = el.dataset.sub.split(':');
       var task = findTask(parts[0]);
       if (task && task.steps[parts[1]]) {
         task.steps[parts[1]].done = el.checked;
@@ -247,9 +600,9 @@ function rInit() {
   });
 
   document.body.addEventListener('click', function (e) {
-    var st = e.target.closest('[data-step]');
+    var st = e.target.closest('[data-tstep]');
     if (st) {
-      var ps = st.dataset.step.split(':');
+      var ps = st.dataset.tstep.split(':');
       setTimerCfg(ps[0], (ps[0] === 'focus' ? tcfg.focus : tcfg.brk) + parseInt(ps[1], 10));
       return;
     }
@@ -257,6 +610,74 @@ function rInit() {
     if (pr) {
       var pp = pr.dataset.preset.split(':');
       setTimerCfg(pp[0], parseInt(pp[1], 10));
+      return;
+    }
+    var en = e.target.closest('[data-energy]');
+    if (en) {
+      energy.level = en.dataset.energy;
+      showAllTasks = false;
+      eSave();
+      renderEnergy();
+      renderTasks();
+      return;
+    }
+    var es = e.target.closest('[data-est]');
+    if (es) {
+      var chips = document.getElementById('estChips').querySelectorAll('button');
+      for (var c = 0; c < chips.length; c++) {
+        chips[c].setAttribute('aria-pressed', chips[c] === es ? 'true' : 'false');
+      }
+      var real = biasApply(parseInt(es.dataset.est, 10));
+      document.getElementById('estHint').textContent = real
+        ? 'По твоим прошлым отметкам это скорее ' + real + ' ' +
+          plural(real, 'минута', 'минуты', 'минут') + '. Можно сразу заложить столько.'
+        : '';
+      return;
+    }
+    var fa = e.target.closest('[data-fact]');
+    if (fa) {
+      var fp = fa.dataset.fact.split(':');
+      var ft = findTask(fp[0]);
+      if (ft && fp[1] !== 'skip') logFact(ft, parseInt(fp[1], 10));
+      askFactFor = '';
+      renderTasks();
+      return;
+    }
+    var ro = e.target.closest('[data-rem-on]');
+    if (ro) {
+      var rl = remGet();
+      for (var i = 0; i < rl.length; i++) {
+        if (rl[i].id === ro.dataset.remOn) { rl[i].on = !rl[i].on; rl[i].fired = ''; }
+      }
+      remSave(rl);
+      renderReminders();
+      return;
+    }
+    var rd = e.target.closest('[data-rem-del]');
+    if (rd) {
+      remSave(remGet().filter(function (x) { return x.id !== rd.dataset.remDel; }));
+      renderReminders();
+      return;
+    }
+    var ibt = e.target.closest('[data-ibx-task]');
+    if (ibt) {
+      var item = inboxGet().filter(function (x) { return x.id === ibt.dataset.ibxTask; })[0];
+      if (item) {
+        routine.tasks.push({ id: uid(), title: item.text, time: '', est: 0, fact: 0, done: false, steps: [] });
+        rSave();
+        inboxDel(item.id);
+        renderInboxCard();
+        inboxRender();
+        renderTasks();
+        toast('Переехало в задачи на сегодня');
+      }
+      return;
+    }
+    var ibd = e.target.closest('[data-ibx-del]');
+    if (ibd) {
+      inboxDel(ibd.dataset.ibxDel);
+      renderInboxCard();
+      inboxRender();
       return;
     }
 
@@ -270,14 +691,14 @@ function rInit() {
       return;
     }
     if (el.dataset.split) {
-      var task = findTask(el.dataset.split);
-      if (!task) return;
+      var task2 = findTask(el.dataset.split);
+      if (!task2) return;
       var s = prompt('Первый шаг — такой, чтобы занял максимум 2 минуты.\nНесколько шагов можно через точку с запятой:', '');
       if (!s || !s.trim()) return;
-      task.steps = task.steps || [];
+      task2.steps = task2.steps || [];
       var arr = s.split(';');
-      for (var i = 0; i < arr.length; i++) {
-        if (arr[i].trim()) task.steps.push({ text: arr[i].trim(), done: false });
+      for (var a = 0; a < arr.length; a++) {
+        if (arr[a].trim()) task2.steps.push({ text: arr[a].trim(), done: false });
       }
       rSave();
       renderTasks();
@@ -290,10 +711,12 @@ function rInit() {
       case 'savetask':
         var ttl = document.getElementById('tTitle').value.trim();
         if (!ttl) { toast('Напиши хотя бы пару слов'); return; }
+        var picked = document.querySelector('#estChips [aria-pressed="true"]');
         routine.tasks.push({
           id: uid(), title: ttl,
           time: document.getElementById('tTime').value || '',
-          done: false, steps: []
+          est: picked ? parseInt(picked.dataset.est, 10) : 0,
+          fact: 0, done: false, steps: []
         });
         rSave();
         document.getElementById('taskForm').innerHTML = '';
@@ -303,23 +726,51 @@ function rInit() {
       case 'uncheck':
         for (var k = 0; k < routine.tasks.length; k++) {
           routine.tasks[k].done = false;
-          var st = routine.tasks[k].steps || [];
-          for (var m = 0; m < st.length; m++) st[m].done = false;
+          var sts = routine.tasks[k].steps || [];
+          for (var m = 0; m < sts.length; m++) sts[m].done = false;
         }
+        askFactFor = '';
         rSave();
         renderTasks();
         break;
+      case 'showall': showAllTasks = true; renderTasks(); break;
+      case 'showless': showAllTasks = false; renderTasks(); break;
       case 'treset': tReset('focus'); break;
-      case 'nudge': newNudge(); break;
+      case 'rung-ok':
+        ladder.step = 0;
+        ladderPickAll();
+        renderLadder();
+        praise();
+        break;
+      case 'rung-other':
+        var cur = LADDER[ladder.step];
+        if (cur.items.length > 1) {
+          var nx;
+          do { nx = Math.floor(Math.random() * cur.items.length); } while (nx === ladder.pick[ladder.step]);
+          ladder.pick[ladder.step] = nx;
+        }
+        renderLadder();
+        break;
+      case 'rung-next':
+        ladder.step = Math.min(LADDER.length - 1, ladder.step + 1);
+        renderLadder();
+        break;
+      case 'rung-timer':
+        setTimerCfg('focus', 2);
+        tReset('focus');
+        tToggle();
+        document.querySelector('.timer').scrollIntoView({ block: 'center' });
+        break;
+      case 'rung-stop':
+        ladder.step = 0;
+        ladderPickAll();
+        renderLadder();
+        toast('Не идёт — так бывает. Завтра ступени будут те же');
+        break;
+      case 'addrem': addReminder(); break;
+      case 'remperm': askNotifyPermission(); break;
     }
   });
-}
-
-function newNudge() {
-  var el = document.getElementById('nudge');
-  var next, cur = el.textContent;
-  do { next = NUDGES[Math.floor(Math.random() * NUDGES.length)]; } while (next === cur && NUDGES.length > 1);
-  el.textContent = next;
 }
 
 document.addEventListener('DOMContentLoaded', rInit);

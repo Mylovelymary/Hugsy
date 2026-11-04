@@ -861,6 +861,8 @@ footer.foot {
   line-height: 1.55;
   border-top: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
 }
+/* Сноска тянется на всю ширину подвала: общий лимит 68ch рвёт строку посередине блока */
+footer.foot p { max-width: none; }
 
 /* Всплывающая похвала */
 .toast {
@@ -1315,3 +1317,279 @@ html.pin-locked body > *:not(#pin-gate):not(#wall) {
 .copy { font-size: .78rem; opacity: .7; margin-top: 14px; }
 
 .eyebrow .i { width: 1em; height: 1em; vertical-align: -.12em; margin-right: .3em; }
+
+/* ======================================================================
+   Очередь 3 — СДВГ: ящик мыслей, лесенка запуска, круг таймера,
+   полоса дня, силы на сегодня, напоминания.
+   Всё держится на токенах: в «Тихом режиме» радиусы меньше, теней нет,
+   анимации выключены — отдельных правил под него не требуется.
+   ====================================================================== */
+
+/* ---------- Ящик мыслей (на всех страницах) ---------- */
+.inbox-btn {
+  position: fixed;
+  right: 18px;
+  bottom: 22px;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 48px;
+  padding: 11px 18px;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  box-shadow: var(--shadow-lift);
+  cursor: pointer;
+  transition: transform var(--speed), border-color var(--speed);
+}
+.inbox-btn:hover { border-color: var(--accent); transform: translateY(calc(-2px * var(--deco))); }
+.inbox-btn i { font-style: normal; }
+.inbox-n {
+  min-width: 21px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  line-height: 21px;
+  text-align: center;
+}
+.inbox-panel {
+  position: fixed;
+  right: 18px;
+  bottom: 80px;
+  z-index: 46;
+  width: min(340px, calc(100vw - 36px));
+  max-height: min(70vh, 560px);
+  overflow: auto;
+  padding: var(--sp-3);
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lift);
+}
+.inbox-panel h3 { margin: 0 0 4px; }
+.inbox-panel textarea { width: 100%; margin-bottom: 10px; }
+.inbox-items { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.inbox-items li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 9px 10px;
+  background: var(--card-soft);
+  border-radius: var(--radius-xs);
+  font-size: var(--fs-sm);
+}
+.inbox-items li span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+
+@media (max-width: 680px) {
+  /* Над нижним меню, чтобы кнопка не села на «Рутину» */
+  .inbox-btn { bottom: calc(84px + env(safe-area-inset-bottom)); right: 14px; }
+  .inbox-panel { bottom: calc(142px + env(safe-area-inset-bottom)); right: 14px; }
+}
+@media print { .inbox-btn, .inbox-panel { display: none !important; } }
+
+/* ---------- Лесенка запуска ---------- */
+.ladder { display: grid; gap: 8px; margin: var(--sp-3) 0 0; }
+.rung {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--card-soft);
+  color: var(--text-soft);
+  font-size: var(--fs-sm);
+}
+.rung .num {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  font-weight: 700;
+  font-size: var(--fs-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.rung.on {
+  border-color: var(--accent);
+  background: var(--card);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+.rung.on .num { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); }
+.rung.past { opacity: .6; }
+.rung .rtxt { flex: 1; min-width: 0; }
+.rung .rname { display: block; font-weight: 700; color: var(--text); }
+.rung.on .rtask { font-size: var(--fs-body); font-weight: 600; margin-top: 3px; }
+
+/* ---------- Круг таймера ---------- */
+.ring-wrap { position: relative; width: 196px; height: 196px; margin: var(--sp-3) auto var(--sp-2); }
+.ring-wrap svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring-bg { stroke: var(--line); }
+.ring-fg {
+  stroke: var(--accent);
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s linear;
+}
+.ring-wrap .inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+/* Внутри кольца цифры мельче: в полный размер они упираются в обводку */
+.ring-wrap .clock { margin: 0; font-size: clamp(2.1rem, 1.7rem + 1.6vw, 2.6rem); }
+.ring-wrap .ring-mode { font-size: var(--fs-xs); color: var(--text-soft); text-transform: lowercase; }
+@media (prefers-reduced-motion: reduce) { .ring-fg { transition: none; } }
+[data-theme="quiet"] .ring-fg { transition: none; }
+
+/* ---------- Полоса дня ---------- */
+.daybar {
+  position: relative;
+  height: 78px;
+  margin: var(--sp-3) 0 var(--sp-2);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--card-soft);
+  overflow: hidden;
+}
+.daybar .past { position: absolute; left: 0; top: 0; bottom: 0; background: var(--line); opacity: .45; }
+.daybar .hour {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-left: 1px solid var(--line);
+  font-size: 10px;
+  color: var(--text-soft);
+  padding: 3px 0 0 3px;
+  pointer-events: none;
+}
+.daybar .now { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--warn); }
+/* Подпись «сейчас» внизу, подписи часов наверху: иначе они налезают друг на друга */
+.daybar .now::after {
+  content: 'сейчас';
+  position: absolute;
+  bottom: 3px;
+  left: 3px;
+  padding: 0 3px;
+  border-radius: 4px;
+  background: var(--card);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--warn);
+  white-space: nowrap;
+}
+/* У правого края подпись уводим влево, чтобы не вылезала за полосу */
+.daybar .now.end::after { left: auto; right: 3px; }
+.daybar .slot {
+  position: absolute;
+  bottom: 22px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  max-width: 92px;
+}
+.daybar .slot b {
+  width: 11px;
+  height: 11px;
+  border-radius: 999px;
+  background: var(--accent);
+  border: 2px solid var(--card);
+}
+.daybar .slot.done b { background: var(--ok); }
+.daybar .slot span {
+  font-size: 10px;
+  line-height: 1.15;
+  color: var(--text-soft);
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 92px;
+}
+
+/* ---------- Силы на сегодня ---------- */
+.energy { display: flex; gap: 8px; flex-wrap: wrap; margin-top: var(--sp-2); }
+.energy button {
+  flex: 1 1 110px;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  color: var(--text-soft);
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--speed), background var(--speed), color var(--speed);
+}
+.energy button:hover { border-color: var(--accent); }
+.energy button[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+
+/* ---------- Оценка времени ---------- */
+.esti {
+  margin-top: 10px;
+  padding: 12px 13px;
+  border: 1.5px dashed var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--card-soft);
+  font-size: var(--fs-sm);
+}
+.esti .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.esti .chips button {
+  min-height: 38px;
+  padding: 7px 13px;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--fs-sm);
+  cursor: pointer;
+}
+.esti .chips button:hover { border-color: var(--accent); }
+.bias {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: var(--sp-2);
+  font-size: var(--fs-sm);
+  color: var(--text-soft);
+}
+.bias b { font-family: var(--font-head); font-size: 1.5rem; color: var(--accent-ink); }
+
+/* ---------- Напоминания ---------- */
+.rem-list { list-style: none; margin: var(--sp-2) 0 0; padding: 0; display: grid; gap: 8px; }
+.rem-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 13px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--card-soft);
+}
+.rem-list .rt { font-family: var(--font-head); font-weight: 700; font-size: 1.05rem; }
+.rem-list .rx { flex: 1; min-width: 0; font-size: var(--fs-sm); overflow-wrap: anywhere; }
+.rem-list li.off { opacity: .55; }

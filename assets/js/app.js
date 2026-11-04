@@ -154,7 +154,7 @@ function initPinGate() {
     '<div class="pin-card card">' +
       '<div class="pin-peng" id="pin-peng">' + mascotHTML('penguin', 120, 'Пингвин Хагси') + '</div>' +
       '<h2>Закрытое тестирование</h2>' +
-      '<p class="pin-desc">Привет! Hugsy пока тестируется в узком кругу. Введи код доступа, чтобы зайти 🐧</p>' +
+      '<p class="pin-desc">Привет! Хагси пока тестируется в узком кругу. Введи код доступа, чтобы зайти 🐧</p>' +
       '<form id="pin-form" class="pin-form" onsubmit="return false;">' +
         '<div class="pin-input-wrap">' +
           '<input type="password" id="pin-input" class="pin-input" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="••••" autocomplete="off" autofocus />' +
@@ -408,6 +408,17 @@ function uid() {
 
 function pad2(n) { return n < 10 ? '0' + n : '' + n; }
 
+/* Склонение по числу: plural(2, 'минута', 'минуты', 'минут') -> 'минуты'.
+   Нужно везде, где число показывается рядом со словом: «2 минут» режет глаз. */
+function plural(n, one, few, many) {
+  var a = Math.abs(n) % 100;
+  var b = a % 10;
+  if (a > 10 && a < 20) return many;
+  if (b > 1 && b < 5) return few;
+  if (b === 1) return one;
+  return many;
+}
+
 function nowLocal() {
   var d = new Date();
   return pad2(d.getDate()) + '.' + pad2(d.getMonth() + 1) + '.' + d.getFullYear() +
@@ -445,6 +456,193 @@ function praise() {
   toast(PRAISE[Math.floor(Math.random() * PRAISE.length)]);
 }
 
+/* ---------------- Ящик мыслей ----------------
+   При СДВГ мысль, которая пришла не вовремя, либо утащит из дела, либо потеряется.
+   Ящик есть на каждой странице: бросил — и вернулся к тому, что делал.
+   Разбирается он на «Рутине»: мысль превращается в задачу или просто уходит.
+   На экране упражнения «Аптечки» кнопки нет (там человеку не до мыслей) —
+   такие страницы ставят у <body> атрибут data-no-inbox. */
+function inboxGet() { return Store.get('inbox', []); }
+function inboxSave(list) { Store.set('inbox', list); }
+
+function inboxAdd(text) {
+  var list = inboxGet();
+  list.unshift({ id: uid(), text: text, ts: nowLocal() });
+  inboxSave(list);
+  return list;
+}
+
+function inboxDel(id) {
+  inboxSave(inboxGet().filter(function (x) { return x.id !== id; }));
+}
+
+function inboxCount() {
+  var btn = document.getElementById('inboxBtn');
+  if (!btn) return;
+  var n = inboxGet().length;
+  var badge = btn.querySelector('.inbox-n');
+  badge.textContent = n ? n : '';
+  badge.hidden = !n;
+  btn.setAttribute('aria-label', n ? 'Ящик мыслей, записок внутри: ' + n : 'Ящик мыслей, пока пусто');
+}
+
+function inboxRender() {
+  var host = document.getElementById('inboxList');
+  if (!host) return;
+  var list = inboxGet();
+  if (!list.length) {
+    host.innerHTML = '<p class="muted" style="margin:0">Пока пусто. И это нормально.</p>';
+    inboxCount();
+    return;
+  }
+  var html = '<ul class="inbox-items">';
+  for (var i = 0; i < list.length && i < 6; i++) {
+    html += '<li><span>' + esc(list[i].text) + '</span>' +
+      '<button type="button" class="btn sm ghost ico-only" data-inbox-del="' + list[i].id +
+      '" aria-label="Убрать записку">' + icon('close') + '</button></li>';
+  }
+  html += '</ul>';
+  if (list.length > 6) html += '<p class="muted" style="margin:8px 0 0">И ещё ' + (list.length - 6) + '. Весь ящик — на «Рутине».</p>';
+  host.innerHTML = html;
+  inboxCount();
+}
+
+function inboxToggle(open) {
+  var panel = document.getElementById('inboxPanel');
+  var btn = document.getElementById('inboxBtn');
+  if (!panel) return;
+  var show = (open == null) ? panel.hidden : open;
+  panel.hidden = !show;
+  btn.setAttribute('aria-expanded', show ? 'true' : 'false');
+  if (show) {
+    inboxRender();
+    document.getElementById('inboxText').focus();
+  } else {
+    btn.focus();
+  }
+}
+
+function inboxSubmit() {
+  var field = document.getElementById('inboxText');
+  var text = field.value.trim();
+  if (!text) { toast('Напиши хоть пару слов — и закрывай'); return; }
+  inboxAdd(text);
+  field.value = '';
+  inboxRender();
+  if (typeof renderInboxCard === 'function') renderInboxCard();
+  toast('В ящике. Голову можно освободить 🐧');
+}
+
+function initInbox() {
+  if (document.body.hasAttribute('data-no-inbox')) return;
+
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.id = 'inboxBtn';
+  btn.className = 'inbox-btn';
+  btn.setAttribute('aria-expanded', 'false');
+  btn.setAttribute('aria-controls', 'inboxPanel');
+  btn.innerHTML = icon('Brain') + '<i>Мысль</i><span class="inbox-n" hidden></span>';
+
+  var panel = document.createElement('div');
+  panel.id = 'inboxPanel';
+  panel.className = 'inbox-panel';
+  panel.hidden = true;
+  panel.setAttribute('role', 'dialog');
+  panel.setAttribute('aria-label', 'Ящик мыслей');
+  panel.innerHTML =
+    '<h3>Ящик мыслей</h3>' +
+    '<p class="muted">Пришло не вовремя — положи сюда и возвращайся к делу. Разобрать можно на «Рутине».</p>' +
+    '<textarea id="inboxText" rows="3" placeholder="Что всплыло в голове"></textarea>' +
+    '<div class="btn-row"><button type="button" class="btn sm" data-inbox="save">Убрать в ящик</button>' +
+    '<button type="button" class="btn sm ghost" data-inbox="close">Закрыть</button></div>' +
+    '<div id="inboxList" style="margin-top:14px"></div>';
+
+  document.body.appendChild(btn);
+  document.body.appendChild(panel);
+  inboxCount();
+
+  btn.addEventListener('click', function () { inboxToggle(); });
+
+  panel.addEventListener('click', function (e) {
+    var del = e.target.closest('[data-inbox-del]');
+    if (del) {
+      inboxDel(del.dataset.inboxDel);
+      inboxRender();
+      if (typeof renderInboxCard === 'function') renderInboxCard();
+      return;
+    }
+    var act = e.target.closest('[data-inbox]');
+    if (!act) return;
+    if (act.dataset.inbox === 'save') inboxSubmit();
+    if (act.dataset.inbox === 'close') inboxToggle(false);
+  });
+
+  panel.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { inboxSubmit(); return; }
+    if (e.key === 'Escape') inboxToggle(false);
+  });
+
+  document.addEventListener('click', function (e) {
+    if (panel.hidden) return;
+    if (panel.contains(e.target) || btn.contains(e.target)) return;
+    inboxToggle(false);
+  });
+}
+
+/* ---------------- Мягкие напоминания ----------------
+   Только те, что человек поставил себе сам. Ни одного «ты не заходил три дня».
+   Пропущенное напоминание не догоняет: если время ушло больше чем на час,
+   оно тихо гасится до завтра — висящий укор никому не помогает.
+   Работает, пока вкладка открыта; без сервера иначе нельзя, и мы честно это пишем. */
+var REM_WINDOW_MIN = 60;
+
+function remGet() { return Store.get('reminders', []); }
+function remSave(list) { Store.set('reminders', list); }
+
+function minutesOf(hm) {
+  var p = String(hm || '').split(':');
+  return (parseInt(p[0], 10) || 0) * 60 + (parseInt(p[1], 10) || 0);
+}
+
+function softNotify(msg) {
+  toast(msg);
+  try {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('Хагси', { body: msg, icon: (window.ASSET_BASE || '') + 'assets/img/icon-192.webp' });
+    }
+  } catch (e) {}
+}
+
+function remTick() {
+  var list = remGet();
+  if (!list.length) return;
+  var d = new Date();
+  var nowMin = d.getHours() * 60 + d.getMinutes();
+  var today = todayKey();
+  var changed = false;
+
+  for (var i = 0; i < list.length; i++) {
+    var r = list[i];
+    if (!r.on || r.fired === today) continue;
+    var due = minutesOf(r.time);
+    if (nowMin < due) continue;
+    r.fired = today;
+    changed = true;
+    // Опоздали больше чем на час — гасим молча, без догоняющего упрёка
+    if (nowMin - due <= REM_WINDOW_MIN) softNotify(r.text || 'Твоё напоминание');
+  }
+  if (changed) remSave(list);
+}
+
+function initReminders() {
+  remTick();
+  setInterval(remTick, 20000);
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) remTick();
+  });
+}
+
 /* ---------------- Старт ---------------- */
 document.addEventListener('DOMContentLoaded', function () {
   initPinGate();
@@ -452,6 +650,8 @@ document.addEventListener('DOMContentLoaded', function () {
   initNavMore();
   applyWallpaper();
   mountIcons();
+  initInbox();
+  initReminders();
   // Service Worker нужен только на боевом сайте. На localhost он отдавал бы
   // старые CSS и JS из кеша и мешал разработке, поэтому там его сносим.
   var local = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);

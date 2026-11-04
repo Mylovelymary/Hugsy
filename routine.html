@@ -46,6 +46,22 @@
   </div>
   <p class="muted center" id="dayNote">Сделанное наполовину — всё равно сделанное. Галочка за «начал» тоже считается.</p>
 
+  <div class="card soft">
+    <h2><span data-icon="Activity"></span>Сколько сегодня сил</h2>
+    <p class="muted">Честный ответ помогает больше, чем героический. В день, когда сил мало,
+      список сам сожмётся до трёх пунктов — остальное никуда не денется.</p>
+    <div class="energy" id="energy"></div>
+    <p class="muted" id="energyNote" style="margin:12px 0 0"></p>
+  </div>
+
+  <div class="card">
+    <h2><span data-icon="Hourglass"></span>Полоса дня</h2>
+    <p class="muted">Время плохо чувствуется изнутри — пусть будет видно снаружи.
+      Серое — то, что уже прошло, это просто факт, а не упрёк.</p>
+    <div class="daybar" id="daybar"></div>
+    <p class="muted" id="daybarNote" style="margin:0"></p>
+  </div>
+
   <div class="card">
     <h2><span data-icon="tasks"></span>Что на сегодня</h2>
     <div id="tasks"></div>
@@ -57,15 +73,26 @@
   </div>
 
   <div class="card soft">
-    <h2><span data-icon="zap"></span>Не могу начать</h2>
-    <p class="muted">Это не лень. Мозгу тяжело запускаться — значит, нужен шаг такой маленький, что отказаться глупо.</p>
-    <p id="nudge" style="font-size:1.08rem;font-weight:600"></p>
-    <button class="btn sm ghost" data-act="nudge">Другой вариант</button>
+    <h2><span data-icon="Footprints"></span>Не могу начать</h2>
+    <p class="muted">Это не лень. Мозгу тяжело запускаться — значит, спускаемся по ступеням,
+      пока шаг не станет таким маленьким, что отказаться глупо.</p>
+    <div class="ladder" id="ladder"></div>
+    <div class="btn-row" id="ladderBtns" style="margin-top:14px"></div>
   </div>
 
   <div class="card timer">
     <h2><span data-icon="clock"></span>Таймер фокуса</h2>
-    <div class="clock" id="clock">20:00</div>
+    <div class="ring-wrap">
+      <svg viewBox="0 0 120 120" aria-hidden="true">
+        <circle class="ring-bg" cx="60" cy="60" r="54" fill="none" stroke-width="8"></circle>
+        <circle class="ring-fg" id="ringFg" cx="60" cy="60" r="54" fill="none" stroke-width="8"
+                stroke-dasharray="339.292" stroke-dashoffset="0"></circle>
+      </svg>
+      <div class="inner">
+        <div class="clock" id="clock">20:00</div>
+        <span class="ring-mode" id="ringMode">фокус</span>
+      </div>
+    </div>
     <p class="state" id="tstate">Фокус. Делай одно дело, остальное потом.</p>
     <div class="btn-row" style="justify-content:center">
       <button class="btn" id="tstart">Начать</button>
@@ -76,9 +103,9 @@
       <div class="f">
         <span>Сколько длится фокус</span>
         <div class="stepper">
-          <button class="sbtn" data-step="focus:-5" aria-label="Фокус: на 5 минут меньше"></button>
-          <span class="mid"><span class="sval" id="focusVal">20</span><span class="sunit">минут</span></span>
-          <button class="sbtn" data-step="focus:5" aria-label="Фокус: на 5 минут больше"></button>
+          <button class="sbtn" data-tstep="focus:-5" aria-label="Фокус: на 5 минут меньше"></button>
+          <span class="mid"><span class="sval" id="focusVal">20</span><span class="sunit" id="focusUnit">минут</span></span>
+          <button class="sbtn" data-tstep="focus:5" aria-label="Фокус: на 5 минут больше"></button>
         </div>
         <div class="presets" id="focusPresets"></div>
       </div>
@@ -86,15 +113,43 @@
       <div class="f" style="margin-top:20px">
         <span>Сколько длится перерыв</span>
         <div class="stepper">
-          <button class="sbtn" data-step="brk:-1" aria-label="Перерыв: на минуту меньше"></button>
-          <span class="mid"><span class="sval" id="brkVal">5</span><span class="sunit">минут</span></span>
-          <button class="sbtn" data-step="brk:1" aria-label="Перерыв: на минуту больше"></button>
+          <button class="sbtn" data-tstep="brk:-1" aria-label="Перерыв: на минуту меньше"></button>
+          <span class="mid"><span class="sval" id="brkVal">5</span><span class="sunit" id="brkUnit">минут</span></span>
+          <button class="sbtn" data-tstep="brk:1" aria-label="Перерыв: на минуту больше"></button>
         </div>
         <div class="presets" id="brkPresets"></div>
       </div>
     </div>
     <p class="muted" style="margin-top:18px">Если 20 минут — много, поставь 7. Маленький законченный
       отрезок лучше большого брошенного.</p>
+  </div>
+
+  <div class="card">
+    <h2><span data-icon="Hourglass"></span>Сколько на самом деле уходит времени</h2>
+    <p class="muted">Недооценка времени — не черта характера, а величина, которую можно измерить.
+      Измеришь — сможешь закладывать в план. Отмечай факт у задач, где ставил оценку.</p>
+    <div id="bias"></div>
+  </div>
+
+  <div class="card">
+    <h2><span data-icon="AlarmClock"></span>Напоминания</h2>
+    <p class="muted">Только те, что ты поставишь сам. Никаких «ты давно не заходил»
+      и «прогресс под угрозой» — мы так не делаем.</p>
+    <div class="f" style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+      <label class="f" style="flex:0 0 130px"><span>Во сколько</span><input type="time" id="remTime"></label>
+      <label class="f" style="flex:1 1 220px"><span>Что напомнить</span>
+        <input type="text" id="remText" placeholder="Например: выпить воды и размяться"></label>
+      <button class="btn sm" data-act="addrem" style="margin-bottom:2px">Поставить</button>
+    </div>
+    <div id="remList"></div>
+    <p class="muted" id="remState" style="margin-top:14px"></p>
+  </div>
+
+  <div class="card">
+    <h2><span data-icon="Brain"></span>Ящик мыслей</h2>
+    <p class="muted">Всё, что ты бросал в ящик кнопкой в углу страницы. Мысль можно
+      превратить в задачу на сегодня или просто убрать — разобрать не обязательно.</p>
+    <div id="inboxCard"></div>
   </div>
 
   <div class="card">
@@ -106,7 +161,7 @@
 
 <footer class="foot">
   <p>Задачи и настройки таймера хранятся только в этом браузере.</p>
-  <p class="copy">© 2026 Хагси. Проект сделан людьми, которые сами через это проходили. Это поддержка, а не медицинская услуга.</p>
+  <p class="copy">© 2026 Хагси. Сделано людьми с заботой о людях.</p>
 </footer>
 
 </body>
