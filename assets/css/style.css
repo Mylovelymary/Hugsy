@@ -1016,14 +1016,20 @@ footer.foot p { max-width: none; }
   .nav-extra {
     display: none;
     position: absolute;
+    /* top сбрасываем обязательно: общее правило задаёт его для выпадающего меню
+       на большом экране, и без сброса панель уезжает под нижнее меню за экран */
+    top: auto;
     left: 0; right: 0; bottom: 100%;
+    min-width: 0;
+    border-radius: 0;
     padding: 8px 4px;
     background: var(--card);
     border-top: 1px solid var(--line);
     border-bottom: 1px solid var(--line);
     box-shadow: 0 -10px 30px rgba(0, 0, 0, .1);
   }
-  .nav.open .nav-extra { display: flex; gap: 2px; }
+  /* Четыре пункта в одну строку на 375px не помещаются — кладём их 2×2 */
+  .nav.open .nav-extra { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
   .nav.open .nav-extra a { display: flex; }
   .nav-more { display: flex; }
   .nav-more[aria-expanded="true"] { background: var(--accent-soft); color: var(--accent-text); }
@@ -1512,10 +1518,7 @@ html.pin-locked body > *:not(#pin-gate):not(#wall) {
 .mic-btn .i { width: 20px; height: 20px; vertical-align: 0; }
 .mic-btn.listening { border-color: var(--warn); color: var(--warn); background: var(--warn-soft); }
 
-/* Будильник в поле времени: иначе пустое «--:--» читается как сломанное поле */
-.tf-ic { display: inline-flex; color: var(--text-soft); margin-right: 4px; }
-.tf-ic .i { width: 20px; height: 20px; vertical-align: 0; }
-.timefield[data-empty="false"] .tf-ic { color: var(--accent); }
+
 
 @media (max-width: 680px) {
   /* Над нижним меню, чтобы кнопка не села на меню.
@@ -2073,7 +2076,7 @@ html.pin-locked body > *:not(#pin-gate):not(#wall) {
     gap: 4px;
     min-height: 40px;
     padding: 6px 12px 6px 8px;
-    margin-right: 10px;
+    margin-left: 10px;
     border: 1.5px solid var(--line);
     border-radius: 999px;
     background: var(--card);
@@ -2102,4 +2105,21 @@ html.pin-locked body > *:not(#pin-gate):not(#wall) {
 .field-mic .mic-btn { margin-top: 2px; }
 
 /* Настройка колонок — под самой таблицей, а не рядом с «Запись» */
-.tbl-foot { margin-top: var(--sp-2); padding-top: var(--sp-2); border-top: 1px solid color-mix(in srgb, var(--line) 60%, transparent); }
+.tbl-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: var(--sp-2);
+  padding-top: var(--sp-3);
+  border-top: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
+}
+
+/* ---------- Плитка с иконкой сбоку ----------
+   Для разделов «Тело · Голова · Опора»: иконка слева, текст рядом с ней —
+   так строка читается одним движением глаз, а не сверху вниз. */
+.tile-row { display: flex; align-items: flex-start; gap: 14px; }
+.tile-row .ico { margin-bottom: 0; flex: none; }
+.tile-body { display: block; min-width: 0; }
+/* Описание — отдельной строкой, иначе счётчик «7 способов» прилипает к концу текста */
+.tile-row .d { display: block; }
+.tile-row .pill { display: inline-block; margin-top: 8px; }

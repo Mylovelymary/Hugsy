@@ -255,9 +255,11 @@ function renderPanel() {
   var p = document.getElementById('panel');
   if (!t) { p.innerHTML = ''; return; }
 
+  // Пока записей нет, кнопка в шапке не нужна: ровно то же самое предлагает
+  // большая кнопка в пустом состоянии, и две одинаковые сбивают с толку
   var html = '<div class="card"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">' +
     '<h2 style="margin:0;flex:1 1 auto">' + (iconOr(t.icon) || icon('notebook')) + esc(t.name) + '</h2>' +
-    '<button class="btn sm" data-act="addrow">' + icon('plus') + ' Запись</button>' +
+    (t.rows.length ? '<button class="btn sm" data-act="addrow">' + icon('plus') + ' Запись</button>' : '') +
     '</div>';
 
   html += '<p class="muted" style="margin:8px 0 0">' + t.rows.length + ' ' + plural(t.rows.length, 'запись', 'записи', 'записей') +
@@ -289,7 +291,10 @@ function renderPanel() {
     html += '</tbody></table></div>';
   }
   html += '<div class="tbl-foot"><button class="btn sm ghost" data-act="cfg">' +
-    icon('columns') + ' Настроить колонки</button></div>';
+    icon('columns') + ' Колонки</button>' +
+    '<button class="btn sm ghost" data-act="rename">' + icon('pencil') + ' Переименовать</button>' +
+    '<button class="btn sm ghost" data-act="droptable">' + icon('trash') + ' Удалить таблицу</button>' +
+    '</div>';
   html += '</div>';
 
   html += '<div class="card soft"><h3>' + icon('download') + 'Выгрузить и поделиться</h3>' +
@@ -301,11 +306,6 @@ function renderPanel() {
     '<button class="btn sm ghost" data-act="restore">' + icon('upload') + ' Восстановить из копии</button>' +
     '</div><p class="muted" style="margin:10px 0 0">CSV открывается в Excel и Google Таблицах — удобно показать специалисту. ' +
     'Резервная копия — файл со всеми таблицами: пригодится при смене браузера или чистке истории.</p></div>';
-
-  html += '<div class="card"><h3>' + icon('sliders') + 'Настройки таблицы</h3><div class="btn-row">' +
-    '<button class="btn sm ghost" data-act="rename">' + icon('pencil') + ' Переименовать</button>' +
-    '<button class="btn sm danger" data-act="droptable">' + icon('trash') + ' Удалить таблицу</button>' +
-    '</div></div>';
 
   p.innerHTML = html;
   fillEmotions();

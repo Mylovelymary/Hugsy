@@ -59,12 +59,12 @@ function renderPanicHome(root) {
   for (var c = 0; c < CATEGORIES.length; c++) {
     var cat = CATEGORIES[c];
     var n = EXERCISES.filter(function (e) { return e.category === cat.id; }).length;
-    html += '<a class="tile" href="list.html?cat=' + cat.id + '">' +
+    html += '<a class="tile tile-row" href="list.html?cat=' + cat.id + '">' +
       '<span class="ico">' + iconOr(cat.icon) + '</span>' +
-      '<strong>' + esc(cat.short) + '</strong>' +
+      '<span class="tile-body"><strong>' + esc(cat.short) + '</strong>' +
       '<span class="d">' + esc(cat.hint) + '</span>' +
-      '<span class="pill" style="margin-top:8px">' + n + ' ' +
-      plural(n, 'способ', 'способа', 'способов') + '</span></a>';
+      '<span class="pill">' + n + ' ' +
+      plural(n, 'способ', 'способа', 'способов') + '</span></span></a>';
   }
   html += '</div>';
 
@@ -136,8 +136,8 @@ function renderPanicEx(root) {
   html += '<p class="lead" style="margin-bottom:20px">' + esc(e.intro || '') + '</p>';
   html += '<div id="exBody"></div>';
   html += '<div class="btn-row" style="margin-top:24px">' +
-    '<a class="btn ghost" href="list.html?cat=' + e.category + '">' + icon('left') + ' Другие способы</a>' +
-    '<a class="btn ghost" href="index.html">В начало</a></div>';
+    '<a class="btn ghost" href="list.html?cat=' + e.category + '">Другие способы ' + icon('right') + '</a>' +
+    '</div>';
   root.innerHTML = html;
   renderExBody(e, document.getElementById('exBody'));
 }

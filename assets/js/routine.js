@@ -524,7 +524,7 @@ function addReminder() {
   list.sort(function (a, b) { return minutesOf(a.time) - minutesOf(b.time); });
   remSave(list);
   document.getElementById('remText').value = '';
-  timeFieldSet('remTime', '');
+  timeFieldSet('remTime', nowHM());
   renderReminders();
   toast('Поставлено. Напомню мягко');
   askNotifyPermission();
@@ -648,7 +648,8 @@ function rInit() {
   applyHidden();
   markVisit();
 
-  document.getElementById('remTimeHost').innerHTML = timeFieldHTML('remTime', '', false);
+  // Поле сразу показывает текущее время: прочерки выглядели как сломанное поле
+  document.getElementById('remTimeHost').innerHTML = timeFieldHTML('remTime', nowHM(), false);
 
   renderTimerControls();
   tReset('focus');

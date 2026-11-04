@@ -408,6 +408,12 @@ function uid() {
 
 function pad2(n) { return n < 10 ? '0' + n : '' + n; }
 
+/* Текущее время в формате HH:MM — им заполняются поля времени по умолчанию */
+function nowHM() {
+  var d = new Date();
+  return pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+}
+
 /* Склонение по числу: plural(2, 'минута', 'минуты', 'минут') -> 'минуты'.
    Нужно везде, где число показывается рядом со словом: «2 минут» режет глаз. */
 function plural(n, one, few, many) {
@@ -464,7 +470,6 @@ function timeFieldHTML(id, value, allowEmpty) {
   return '<div class="timefield" id="' + id + '-tf" data-empty="' + (v ? 'false' : 'true') + '">' +
     '<input type="hidden" id="' + id + '" value="' + v + '">' +
     '<div class="tf-box">' +
-      '<span class="tf-ic" aria-hidden="true">' + icon('AlarmClock') + '</span>' +
       tfUnitHTML(id, 'h', v) + '<span class="tf-sep">:</span>' + tfUnitHTML(id, 'm', v) +
     '</div>' +
     (allowEmpty ? '<button type="button" class="btn sm ghost" data-tclear="' + id + '">Без времени</button>' : '') +
@@ -542,7 +547,7 @@ function initBackHome() {
   a.href = base + 'index.html';
   a.setAttribute('aria-label', 'На главную');
   a.innerHTML = icon('left') + '<i>Главная</i>';
-  top.insertBefore(a, top.firstChild);
+  top.appendChild(a);   // справа от названия: см. .back-home в style.css
 }
 
 /* ---------------- Голосовой ввод ----------------
