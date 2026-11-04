@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="ice">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Тишина — Хагси</title>
+<meta name="description" content="Когда вокруг слишком: тихий режим без анимаций, план на сенсорную перегрузку по шагам и упражнения, которые работают в шуме.">
+<meta name="theme-color" content="#eaf4fb">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+<link rel="preload" href="assets/fonts/manrope-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/inter-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/css/style.css">
+<script src="data/icons.js" defer></script>
+<script src="data/patterns.js" defer></script>
+<script src="assets/js/app.js" defer></script>
+<script src="assets/js/sensory.js" defer></script>
+</head>
+<body data-no-inbox>
+
+<header class="top">
+  <a class="brand" href="index.html">
+    <img class="brand-mark" src="assets/img/mark.webp" width="96" height="118" alt="">
+    Хагси
+  </a>
+  <nav class="nav" aria-label="Разделы">
+    <a href="panic/index.html" data-nav="main"><span data-icon="buoy"></span><i>Аптечка</i></a>
+    <a href="routine.html" data-nav="main"><span data-icon="zap"></span><i>Разгон</i></a>
+    <a href="tracker.html" data-nav="main"><span data-icon="notebook"></span><i>Дневник</i></a>
+    <a href="sensory.html" data-nav="main" aria-current="page"><span data-icon="headphones"></span><i>Тишина</i></a>
+    <div class="nav-extra">
+      <a href="quiz.html"><span data-icon="compass"></span><i>Анкета</i></a>
+      <a href="resources.html"><span data-icon="users"></span><i>Помощь</i></a>
+      <a href="close.html"><span data-icon="heart"></span><i>Близким</i></a>
+      <a href="themes.html"><span data-icon="gear"></span><i>Настройки</i></a>
+    </div>
+    <button type="button" class="nav-more" aria-expanded="false" aria-label="Ещё разделы"><span data-icon="grid"></span><i>Ещё</i></button>
+  </nav>
+</header>
+
+<main class="wrap">
+  <h1>Тишина</h1>
+  <p class="muted">Когда вокруг слишком: звуки, свет, люди, разговоры, дела одновременно.
+    Это сенсорная перегрузка. Так часто бывает у аутичных людей и при сенсорной
+    чувствительности, но хватит и обычной усталости — диагноз для этого раздела не нужен.</p>
+
+  <div class="card">
+    <h2><span data-icon="moon"></span>Тихий режим</h2>
+    <p class="muted">Убирает анимации, тени и лишний декор со всего сайта. Включается одной
+      кнопкой и держится, пока сам не выключишь — на всех страницах и после перезагрузки.</p>
+    <div class="btn-row">
+      <button class="btn" id="quietBtn"></button>
+      <a class="btn ghost" href="themes.html">Другие настройки вида</a>
+    </div>
+    <p class="muted" id="quietState" style="margin:14px 0 0"></p>
+  </div>
+
+  <div class="card soft">
+    <h2><span data-icon="ShieldCheck"></span>План на перегрузку</h2>
+    <p class="muted">Один шаг за раз, крупно, листать не надо. Если читать сейчас тяжело —
+      просто делай то, что написано, и жми «дальше».</p>
+    <div class="plan" id="plan"></div>
+    <div class="btn-row" id="planBtns"></div>
+  </div>
+
+  <div class="card">
+    <h2><span data-icon="Waves"></span>Что помогает прямо сейчас</h2>
+    <p class="muted">Эти способы из «Аптечки» годятся и при перегрузке: они про тело,
+      а не про разговоры, и не требуют объяснять кому-то, что с тобой.</p>
+    <div class="grid">
+      <a class="tile" href="panic/ex.html?id=grounding">
+        <span class="ico" data-icon="Footprints" aria-hidden="true"></span>
+        <strong>Корни в пол</strong>
+        <span class="d">Вернуть ощущение опоры, когда всё поплыло.</span>
+      </a>
+      <a class="tile" href="panic/ex.html?id=belly">
+        <span class="ico" data-icon="Wind" aria-hidden="true"></span>
+        <strong>Дыхание животом</strong>
+        <span class="d">Медленный выдох сам притормаживает нервную систему.</span>
+      </a>
+      <a class="tile" href="panic/ex.html?id=muscle">
+        <span class="ico" data-icon="Dumbbell" aria-hidden="true"></span>
+        <strong>Напряги и отпусти</strong>
+        <span class="d">Телу проще сбросить напряжение через усилие, чем через уговоры.</span>
+      </a>
+      <a class="tile" href="panic/ex.html?id=hug">
+        <span class="ico" data-icon="HeartHandshake" aria-hidden="true"></span>
+        <strong>Обними себя</strong>
+        <span class="d">Давление и вес успокаивают — это то же, зачем нужны тяжёлые одеяла.</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span data-icon="sprout"></span>Что появится здесь дальше</h2>
+    <p class="muted">Пишем честно, чтобы не выглядело, будто раздел больше, чем он есть:
+      готовые фразы для разговоров, которые тяжело начинать (запись к врачу, просьба
+      к работодателю, отказ от приглашения), и таблица «Батарейка» — учёт сил по дням.</p>
+    <p class="muted">Если чего-то здесь не хватает именно тебе — это самый полезный отзыв,
+      какой можно дать.</p>
+  </div>
+</main>
+
+<footer class="foot">
+  <p>Настройки вида хранятся только в этом браузере, на этом устройстве.</p>
+  <p class="copy">© 2026 Хагси. Сделано людьми с заботой о людях.</p>
+</footer>
+
+</body>
+</html>

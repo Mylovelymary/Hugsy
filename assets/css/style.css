@@ -293,10 +293,12 @@ a:hover { text-decoration-color: var(--accent); }
   text-decoration: none;
   color: var(--text);
   margin-right: auto;
-  font-size: 1.12rem;
+  /* Крупнее обычного: это и название, и главная кнопка «домой» */
+  font-size: 1.42rem;
 }
-.brand svg { width: 36px; height: 36px; flex: none; }
-.brand-mark { width: 34px; height: auto; flex: none; }
+.brand svg { width: 42px; height: 42px; flex: none; }
+.brand-mark { width: 42px; height: auto; flex: none; }
+.brand:hover { color: var(--accent-ink); }
 
 .nav { display: flex; gap: 4px; flex-wrap: wrap; }
 .nav a {
@@ -893,7 +895,7 @@ footer.foot p { max-width: none; }
    Это правило только для большого экрана: в нижней панели телефона активная
    вкладка должна оставаться на месте, иначе меню прыгает. */
 @media (min-width: 681px) {
-  .nav a[aria-current="page"] { display: none; }
+  /* Свой пункт меню остаётся на месте: исчезающая кнопка сбивает с толку */
 }
 
 /* Кнопка «Ещё» нужна только на телефоне; на большом экране все пункты в строке */
@@ -1389,9 +1391,20 @@ html.pin-locked body > *:not(#pin-gate):not(#wall) {
 .inbox-items li span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 
 @media (max-width: 680px) {
-  /* Над нижним меню, чтобы кнопка не села на «Рутину» */
-  .inbox-btn { bottom: calc(84px + env(safe-area-inset-bottom)); right: 14px; }
-  .inbox-panel { bottom: calc(142px + env(safe-area-inset-bottom)); right: 14px; }
+  /* Над нижним меню, чтобы кнопка не села на меню.
+     Подпись прячем: с ней кнопка налезала на текст страницы. Имя остаётся
+     в aria-label, так что для скринридера ничего не теряется. */
+  .inbox-btn {
+    bottom: calc(84px + env(safe-area-inset-bottom));
+    right: 14px;
+    width: 56px;
+    height: 56px;
+    padding: 0;
+    justify-content: center;
+  }
+  .inbox-btn i { display: none; }
+  .inbox-n { position: absolute; top: -4px; right: -2px; }
+  .inbox-panel { bottom: calc(150px + env(safe-area-inset-bottom)); right: 14px; }
 }
 @media print { .inbox-btn, .inbox-panel { display: none !important; } }
 
@@ -1593,3 +1606,60 @@ html.pin-locked body > *:not(#pin-gate):not(#wall) {
 .rem-list .rt { font-family: var(--font-head); font-weight: 700; font-size: 1.05rem; }
 .rem-list .rx { flex: 1; min-width: 0; font-size: var(--fs-sm); overflow-wrap: anywhere; }
 .rem-list li.off { opacity: .55; }
+
+/* ---------- Свой выбор времени (вместо системного input type="time") ---------- */
+.timefield { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.tf-box {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+}
+.tf-unit { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.tf-btn {
+  width: 44px;
+  height: 30px;
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: none;
+  color: var(--text-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background var(--speed), color var(--speed);
+}
+.tf-btn:hover { background: var(--accent-soft); color: var(--accent-ink); }
+.tf-btn .i { width: 18px; height: 18px; vertical-align: 0; }
+.tf-val {
+  min-width: 2.2ch;
+  text-align: center;
+  font-family: var(--font-head);
+  font-size: 1.65rem;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums;
+}
+.tf-sep {
+  font-family: var(--font-head);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-soft);
+  padding: 0 2px;
+}
+.timefield[data-empty="true"] .tf-val { color: var(--text-soft); }
+
+/* ---------- План на перегрузку (раздел «Тишина») ----------
+   Крупно и в один экран: читать длинный текст при перегрузке невозможно. */
+.plan { margin: var(--sp-3) 0; }
+.plan-n { font-size: var(--fs-xs); color: var(--text-soft); margin: 0 0 6px; letter-spacing: .04em; text-transform: uppercase; }
+.plan-t { font-size: var(--fs-h2); margin: 0 0 8px; }
+.plan-d { font-size: 1.1rem; line-height: 1.5; margin: 0; max-width: 42ch; }
+
+/* Четыре раздела на главной: сетка 2×2 читается как «четыре двери»,
+   а автоподбор колонок ставил три в ряд и одну сиротой на второй строке. */
+.grid.g2 { grid-template-columns: 1fr; }
+@media (min-width: 700px) { .grid.g2 { grid-template-columns: repeat(2, 1fr); } }

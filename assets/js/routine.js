@@ -154,7 +154,8 @@ function taskHTML(t) {
 function renderTasks() {
   var host = document.getElementById('tasks');
   if (!routine.tasks.length) {
-    host.innerHTML = '<div class="empty">' + mascotHTML('goose', 96, '') +
+    // Маскот тут не нужен: тот же гусь уже стоит в шапке страницы, два подряд путают
+    host.innerHTML = '<div class="empty">' +
       '<p>На сегодня пусто. Добавь одну задачу — не самую важную, а самую маленькую.</p></div>';
     renderDayBar();
     return;
@@ -200,7 +201,7 @@ function renderTaskForm() {
   document.getElementById('taskForm').innerHTML =
     '<div class="card soft" style="margin-top:14px" id="tf">' +
     '<label class="f"><span>Что нужно сделать</span><input type="text" id="tTitle" placeholder="Например: разобрать один ящик"></label>' +
-    '<label class="f"><span>Во сколько (необязательно)</span><input type="time" id="tTime"></label>' +
+    '<div class="f"><span>Во сколько (необязательно)</span>' + timeFieldHTML('tTime', '', true) + '</div>' +
     '<div class="esti"><span>Сколько, кажется, это займёт? Необязательно — но из таких догадок ' +
     'собирается твой личный коэффициент времени.</span>' +
     '<div class="chips" id="estChips">' + chips +
@@ -517,6 +518,7 @@ function addReminder() {
   list.sort(function (a, b) { return minutesOf(a.time) - minutesOf(b.time); });
   remSave(list);
   document.getElementById('remText').value = '';
+  timeFieldSet('remTime', '');
   renderReminders();
   toast('Поставлено. Напомню мягко');
   askNotifyPermission();
@@ -554,6 +556,8 @@ function rInit() {
   renderReminders();
   renderInboxCard();
   markVisit();
+
+  document.getElementById('remTimeHost').innerHTML = timeFieldHTML('remTime', '', false);
 
   renderTimerControls();
   tReset('focus');

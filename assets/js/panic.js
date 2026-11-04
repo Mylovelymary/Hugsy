@@ -64,7 +64,7 @@ function renderPanicHome(root) {
       '<strong>' + esc(cat.short) + '</strong>' +
       '<span class="d">' + esc(cat.hint) + '</span>' +
       '<span class="pill" style="margin-top:8px">' + n + ' ' +
-      plural3(n, 'способ', 'способа', 'способов') + '</span></a>';
+      plural(n, 'способ', 'способа', 'способов') + '</span></a>';
   }
   html += '</div>';
 
@@ -74,13 +74,6 @@ function renderPanicHome(root) {
   }
 
   root.innerHTML = html;
-}
-
-function plural3(n, a, b, c) {
-  var m10 = n % 10, m100 = n % 100;
-  if (m10 === 1 && m100 !== 11) return a;
-  if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return b;
-  return c;
 }
 
 /* ---------- Список упражнений ---------- */

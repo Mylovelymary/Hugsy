@@ -411,11 +411,9 @@ function pad2(n) { return n < 10 ? '0' + n : '' + n; }
 /* Склонение по числу: plural(2, 'минута', 'минуты', 'минут') -> 'минуты'.
    Нужно везде, где число показывается рядом со словом: «2 минут» режет глаз. */
 function plural(n, one, few, many) {
-  var a = Math.abs(n) % 100;
-  var b = a % 10;
-  if (a > 10 && a < 20) return many;
-  if (b > 1 && b < 5) return few;
-  if (b === 1) return one;
+  var m10 = n % 10, m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return one;
+  if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return few;
   return many;
 }
 
@@ -454,6 +452,120 @@ var PRAISE = [
 ];
 function praise() {
   toast(PRAISE[Math.floor(Math.random() * PRAISE.length)]);
+}
+
+/* ---------------- Выбор времени ----------------
+   Свой контрол вместо <input type="time">: системный зависит от языка браузера
+   и у половины людей показывает AM/PM и крошечные стрелочки. Здесь всегда 24 часа,
+   кнопки под палец и никаких выпадающих списков.
+   Значение лежит в скрытом поле с тем же id, поэтому читается привычным .value. */
+function timeFieldHTML(id, value, allowEmpty) {
+  var v = /^\d{1,2}:\d{2}$/.test(value || '') ? value : '';
+  return '<div class="timefield" id="' + id + '-tf" data-empty="' + (v ? 'false' : 'true') + '">' +
+    '<input type="hidden" id="' + id + '" value="' + v + '">' +
+    '<div class="tf-box">' +
+      tfUnitHTML(id, 'h', v) + '<span class="tf-sep">:</span>' + tfUnitHTML(id, 'm', v) +
+    '</div>' +
+    (allowEmpty ? '<button type="button" class="btn sm ghost" data-tclear="' + id + '">Без времени</button>' : '') +
+    '</div>';
+}
+
+function tfUnitHTML(id, unit, v) {
+  var parts = v ? v.split(':') : ['', ''];
+  var shown = v ? pad2(parseInt(parts[unit === 'h' ? 0 : 1], 10)) : '--';
+  var name = unit === 'h' ? 'Часы' : 'Минуты';
+  return '<div class="tf-unit">' +
+    '<button type="button" class="tf-btn" data-tadj="' + id + ':' + unit + ':1" aria-label="' + name + ': больше">' + icon('plus') + '</button>' +
+    '<span class="tf-val" data-tfval="' + id + ':' + unit + '" role="status" aria-label="' + name + '">' + shown + '</span>' +
+    '<button type="button" class="tf-btn" data-tadj="' + id + ':' + unit + ':-1" aria-label="' + name + ': меньше">' + icon('minus') + '</button>' +
+    '</div>';
+}
+
+function timeFieldSet(id, value) {
+  var input = document.getElementById(id);
+  if (!input) return;
+  input.value = value;
+  var box = document.getElementById(id + '-tf');
+  if (box) box.dataset.empty = value ? 'false' : 'true';
+  var parts = value ? value.split(':') : ['', ''];
+  var h = document.querySelector('[data-tfval="' + id + ':h"]');
+  var m = document.querySelector('[data-tfval="' + id + ':m"]');
+  if (h) h.textContent = value ? pad2(parseInt(parts[0], 10)) : '--';
+  if (m) m.textContent = value ? pad2(parseInt(parts[1], 10)) : '--';
+}
+
+/* Часы шагают по одному, минуты по пять и переносят час: так быстрее попасть
+   в нужное время, чем печатать его на телефоне. */
+function timeFieldAdjust(id, unit, dir) {
+  var input = document.getElementById(id);
+  if (!input) return;
+  var cur = input.value;
+  if (!cur) {
+    var now = new Date();
+    cur = pad2((now.getHours() + 1) % 24) + ':00';   // ближайший круглый час
+    timeFieldSet(id, cur);
+    return;
+  }
+  var p = cur.split(':');
+  var mins = parseInt(p[0], 10) * 60 + parseInt(p[1], 10);
+  mins += dir * (unit === 'h' ? 60 : 5);
+  mins = ((mins % 1440) + 1440) % 1440;
+  timeFieldSet(id, pad2(Math.floor(mins / 60)) + ':' + pad2(mins % 60));
+}
+
+function initTimeFields() {
+  document.addEventListener('click', function (e) {
+    var adj = e.target.closest('[data-tadj]');
+    if (adj) {
+      var a = adj.dataset.tadj.split(':');
+      timeFieldAdjust(a[0], a[1], parseInt(a[2], 10));
+      return;
+    }
+    var clr = e.target.closest('[data-tclear]');
+    if (clr) timeFieldSet(clr.dataset.tclear, '');
+  });
+}
+
+/* ---------------- Голосовой ввод ----------------
+   Web Speech API: встроен в браузер, бесплатный, ключей не требует.
+   Распознавание идёт на стороне браузера и нужен интернет — это единственное место,
+   где данные покидают устройство, поэтому кнопка всегда добровольная и подписана.
+   Общий слой: им пользуются и таблицы, и ящик мыслей. */
+function hasSpeech() {
+  return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+}
+
+function micBtnHTML(attr, style) {
+  if (!hasSpeech()) return '';
+  return '<button type="button" class="btn sm ghost" ' + attr +
+         (style ? ' style="' + style + '"' : '') +
+         ' title="Надиктовать (нужен интернет)">' + icon('mic') + ' Надиктовать</button>';
+}
+
+var speechRec = null;
+function startMicInto(field, btn) {
+  var Ctor = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!Ctor || !field) return;
+  if (speechRec) { speechRec.stop(); speechRec = null; }
+  speechRec = new Ctor();
+  speechRec.lang = 'ru-RU';
+  speechRec.interimResults = true;
+  speechRec.continuous = false;
+  var base = field.value;
+  btn.innerHTML = icon('mic') + ' Слушаю… (нажми, чтобы остановить)';
+  speechRec.onresult = function (e) {
+    var txt = '';
+    for (var i = e.resultIndex; i < e.results.length; i++) txt += e.results[i][0].transcript;
+    field.value = (base ? base + ' ' : '') + txt;
+  };
+  speechRec.onerror = function (e) {
+    toast(e.error === 'not-allowed' ? 'Браузер не дал доступ к микрофону' : 'Не получилось распознать');
+  };
+  speechRec.onend = function () {
+    btn.innerHTML = icon('mic') + ' Надиктовать';
+    speechRec = null;
+  };
+  try { speechRec.start(); } catch (e) { btn.innerHTML = icon('mic') + ' Надиктовать'; }
 }
 
 /* ---------------- Ящик мыслей ----------------
@@ -542,7 +654,7 @@ function initInbox() {
   btn.className = 'inbox-btn';
   btn.setAttribute('aria-expanded', 'false');
   btn.setAttribute('aria-controls', 'inboxPanel');
-  btn.innerHTML = icon('Brain') + '<i>Мысль</i><span class="inbox-n" hidden></span>';
+  btn.innerHTML = icon('MessageCircle') + '<i>Мысль</i><span class="inbox-n" hidden></span>';
 
   var panel = document.createElement('div');
   panel.id = 'inboxPanel';
@@ -552,8 +664,9 @@ function initInbox() {
   panel.setAttribute('aria-label', 'Ящик мыслей');
   panel.innerHTML =
     '<h3>Ящик мыслей</h3>' +
-    '<p class="muted">Пришло не вовремя — положи сюда и возвращайся к делу. Разобрать можно на «Рутине».</p>' +
+    '<p class="muted">Пришло не вовремя — положи сюда и возвращайся к делу. Разобрать можно в «Разгоне».</p>' +
     '<textarea id="inboxText" rows="3" placeholder="Что всплыло в голове"></textarea>' +
+    micBtnHTML('data-inbox="mic"', 'margin-bottom:10px') +
     '<div class="btn-row"><button type="button" class="btn sm" data-inbox="save">Убрать в ящик</button>' +
     '<button type="button" class="btn sm ghost" data-inbox="close">Закрыть</button></div>' +
     '<div id="inboxList" style="margin-top:14px"></div>';
@@ -576,6 +689,7 @@ function initInbox() {
     if (!act) return;
     if (act.dataset.inbox === 'save') inboxSubmit();
     if (act.dataset.inbox === 'close') inboxToggle(false);
+    if (act.dataset.inbox === 'mic') startMicInto(document.getElementById('inboxText'), act);
   });
 
   panel.addEventListener('keydown', function (e) {
@@ -652,6 +766,7 @@ document.addEventListener('DOMContentLoaded', function () {
   mountIcons();
   initInbox();
   initReminders();
+  initTimeFields();
   // Service Worker нужен только на боевом сайте. На localhost он отдавал бы
   // старые CSS и JS из кеша и мешал разработке, поэтому там его сносим.
   var local = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);

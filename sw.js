@@ -1,7 +1,7 @@
 /* Офлайн-кеш. Стратегия: сначала кеш, потом сеть — страницы открываются мгновенно и без интернета.
    При изменении файлов поднимай VERSION, иначе у пользователя останется старая версия. */
 
-var VERSION = 'hugsy-v15';
+var VERSION = 'hugsy-v16';
 var ASSETS = [
   'index.html',
   'quiz.html',
@@ -9,6 +9,7 @@ var ASSETS = [
   'routine.html',
   'resources.html',
   'close.html',
+  'sensory.html',
   'panic/index.html',
   'panic/list.html',
   'panic/ex.html',
@@ -21,6 +22,7 @@ var ASSETS = [
   'assets/js/resources.js',
   'assets/js/themes.js',
   'assets/js/panic.js',
+  'assets/js/sensory.js',
   'assets/img/penguin.webp',
   'assets/img/goose.webp',
   'assets/img/raccoon.webp',

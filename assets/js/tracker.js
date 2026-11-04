@@ -325,12 +325,6 @@ function toggleClamp(btn) {
   btn.setAttribute('aria-label', open ? 'Свернуть текст' : 'Показать текст целиком');
 }
 
-function plural(n, one, few, many) {
-  var m10 = n % 10, m100 = n % 100;
-  if (m10 === 1 && m100 !== 11) return one;
-  if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return few;
-  return many;
-}
 function recentCount(t) {
   var limit = Date.now() - 7 * 864e5, n = 0;
   for (var i = 0; i < t.rows.length; i++) if ((t.rows[i].ts || 0) > limit) n++;
@@ -403,39 +397,13 @@ function defaultFor(c) {
   return '';
 }
 
-/* ---------- Голосовой ввод: Web Speech API, бесплатно, встроен в браузер ---------- */
-function hasSpeech() {
-  return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
-}
+/* ---------- Голосовой ввод ----------
+   Сам движок общий и живёт в app.js: им пользуется ещё и ящик мыслей. */
 function micBtn(colId) {
-  if (!hasSpeech()) return '';
-  return '<button type="button" class="btn sm ghost" data-mic="' + colId + '" ' +
-         'style="margin-top:6px" title="Надиктовать (нужен интернет)">' + icon('mic') + ' Надиктовать</button>';
+  return micBtnHTML('data-mic="' + colId + '"', 'margin-top:6px');
 }
-var rec = null;
 function startMic(colId, btn) {
-  var Ctor = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (rec) { rec.stop(); rec = null; }
-  rec = new Ctor();
-  rec.lang = 'ru-RU';
-  rec.interimResults = true;
-  rec.continuous = false;
-  var field = document.querySelector('[data-col="' + colId + '"]');
-  var base = field ? field.value : '';
-  btn.innerHTML = icon('mic') + ' Слушаю… (нажми, чтобы остановить)';
-  rec.onresult = function (e) {
-    var txt = '';
-    for (var i = e.resultIndex; i < e.results.length; i++) txt += e.results[i][0].transcript;
-    if (field) field.value = (base ? base + ' ' : '') + txt;
-  };
-  rec.onerror = function (e) {
-    toast(e.error === 'not-allowed' ? 'Браузер не дал доступ к микрофону' : 'Не получилось распознать');
-  };
-  rec.onend = function () {
-    btn.innerHTML = icon('mic') + ' Надиктовать';
-    rec = null;
-  };
-  try { rec.start(); } catch (e) { btn.innerHTML = icon('mic') + ' Надиктовать'; }
+  startMicInto(document.querySelector('[data-col="' + colId + '"]'), btn);
 }
 
 /* ---------- Редактор колонок ---------- */

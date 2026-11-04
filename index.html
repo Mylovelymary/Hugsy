@@ -23,15 +23,15 @@
     Хагси
   </a>
   <nav class="nav" aria-label="Разделы">
-    <a href="index.html" data-nav="main" aria-current="page"><span data-icon="home"></span><i>Главная</i></a>
     <a href="panic/index.html" data-nav="main"><span data-icon="buoy"></span><i>Аптечка</i></a>
-    <a href="tracker.html" data-nav="main"><span data-icon="notebook"></span><i>Таблицы</i></a>
-    <a href="routine.html" data-nav="main"><span data-icon="zap"></span><i>Рутина</i></a>
+    <a href="routine.html" data-nav="main"><span data-icon="zap"></span><i>Разгон</i></a>
+    <a href="tracker.html" data-nav="main"><span data-icon="notebook"></span><i>Дневник</i></a>
+    <a href="sensory.html" data-nav="main"><span data-icon="headphones"></span><i>Тишина</i></a>
     <div class="nav-extra">
       <a href="quiz.html"><span data-icon="compass"></span><i>Анкета</i></a>
       <a href="resources.html"><span data-icon="users"></span><i>Помощь</i></a>
       <a href="close.html"><span data-icon="heart"></span><i>Близким</i></a>
-      <a href="themes.html"><span data-icon="palette"></span><i>Темы</i></a>
+      <a href="themes.html"><span data-icon="gear"></span><i>Настройки</i></a>
     </div>
     <button type="button" class="nav-more" aria-expanded="false" aria-label="Ещё разделы"><span data-icon="grid"></span><i>Ещё</i></button>
   </nav>
@@ -59,27 +59,42 @@
       <a href="resources.html#crisis">Другие контакты помощи</a>. Повод не нужно «заслуживать».</p>
   </div>
 
-  <h2><span class="eyebrow">С чего начать</span>Что здесь есть</h2>
+  <h2><span class="eyebrow">С чего начать</span>Четыре раздела</h2>
+  <p class="muted">Разделы названы не по диагнозам, а по состоянию: заходить можно
+    по тому, как тебе сейчас, а не по справке от врача.</p>
+  <div class="grid g2">
+    <a class="tile" href="panic/index.html">
+      <span class="ico" data-icon="buoy" aria-hidden="true"></span>
+      <strong>Аптечка</strong>
+      <span class="d">Накрыло прямо сейчас: паника, тревога, не хватает воздуха.
+        26 способов по шагам, каждый начинается в одно касание.</span>
+    </a>
+    <a class="tile" href="routine.html">
+      <span class="ico" data-icon="zap" aria-hidden="true"></span>
+      <strong>Разгон</strong>
+      <span class="d">Не получается начать, время утекает, день рассыпается.
+        Лесенка запуска, таймер, полоса дня, ящик мыслей. Часто это про СДВГ.</span>
+    </a>
+    <a class="tile" href="tracker.html">
+      <span class="ico" data-icon="notebook" aria-hidden="true"></span>
+      <strong>Дневник</strong>
+      <span class="d">Та самая таблица, которую просят вести психологи, и любые свои:
+        сон, привычки, триггеры. Можно выгрузить и принести на сессию.</span>
+    </a>
+    <a class="tile" href="sensory.html">
+      <span class="ico" data-icon="headphones" aria-hidden="true"></span>
+      <strong>Тишина</strong>
+      <span class="d">Вокруг слишком: звуки, свет, люди. Тихий режим без анимаций
+        и план на перегрузку по одному шагу.</span>
+    </a>
+  </div>
+
+  <h2><span class="eyebrow">Если нужно другое</span>Остальное</h2>
   <div class="grid">
     <a class="tile" href="quiz.html">
       <span class="ico" data-icon="compass" aria-hidden="true"></span>
       <strong>Анкета по шагам</strong>
       <span class="d">16 простых вопросов → направления, на которые стоит обратить внимание, и инструменты под каждое.</span>
-    </a>
-    <a class="tile" href="tracker.html">
-      <span class="ico" data-icon="notebook" aria-hidden="true"></span>
-      <strong>Дневник чувств и свои таблицы</strong>
-      <span class="d">Та самая таблица, которую просят вести психологи. Плюс любые свои: сон, привычки, триггеры. Можно выгрузить и принести на сессию.</span>
-    </a>
-    <a class="tile" href="routine.html">
-      <span class="ico" data-icon="zap" aria-hidden="true"></span>
-      <strong>Рутина дня и таймер</strong>
-      <span class="d">Для тех, кому тяжело начинать: дробление задачи до шага на две минуты, чеклист дня, таймер фокуса.</span>
-    </a>
-    <a class="tile" href="panic/index.html">
-      <span class="ico" data-icon="buoy" aria-hidden="true"></span>
-      <strong>Аптечка: паника и тревога</strong>
-      <span class="d">Скорая помощь в острый момент: 26 способов по шагам. Холод, движение, слова, которые помогают.</span>
     </a>
     <a class="tile" href="close.html">
       <span class="ico" data-icon="heart" aria-hidden="true"></span>
@@ -111,7 +126,7 @@
     </div>
     <div class="card">
       <h3><span data-icon="palette"></span>Выбери, как будет выглядеть</h3>
-      <p class="muted">Пять оформлений и 13 узоров на фон во вкладке «Темы»: Лёд, Какао, Сакура, Ночь и Тихий режим.
+      <p class="muted">Пять оформлений и 14 узоров на фон в «Настройках»: Лёд, Какао, Сакура, Ночь и Тихий режим.
         Тихий режим убирает анимации и лишний декор: он для сенсорной чувствительности, мигрени и усталых глаз.</p>
     </div>
     <div class="card">
